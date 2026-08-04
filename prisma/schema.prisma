@@ -1,0 +1,580 @@
+// ============================================================
+// schema.prisma — POS Mitbiz for Tablet
+// ============================================================
+// Conventions (mengikuti referensi saas-metro-master):
+//   - Model name    : PascalCase        → e.g. TransactionItem
+//   - Field name    : camelCase         → e.g. createdAt, businessId
+//   - Table name    : @@map("snake")    → e.g. @@map("transaction_item")
+//   - Primary Key   : String @id @default(cuid())
+//   - Timestamps    : createdAt + updatedAt ada di setiap model
+//   - Enum values   : SCREAMING_SNAKE_CASE → e.g. DINE_IN, TAKE_AWAY
+//   - Soft delete   : deletedAt DateTime?  → null = aktif, diisi = sudah dihapus
+// ============================================================
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Koneksi ke database, diambil dari file .env
+}
+
+// ============================================================
+// ENUMS — Nilai tetap yang digunakan sebagai pilihan field
+// ============================================================
+
+/// Role / Jabatan pengguna di dalam sistem
+enum UserRole {
+  SUPER_ADMIN // Pengelola platform Mitbiz (level tertinggi, akses semua tenant)
+  ADMIN // Pengelola bisnis / cabang tertentu
+  STAFF // Petugas / karyawan dengan akses spesifik berdasarkan Role (menggantikan KASIR statis)
+}
+
+/// Menu permission yang bisa dicentang oleh Admin untuk suatu Role
+enum MenuPermission {
+  MENU_DASHBOARD
+  MENU_REPORT
+  MENU_CABANG
+  MENU_STAFF
+  MENU_PRODUCT
+  MENU_CATEGORY
+  MENU_PAYMENT
+  MENU_STOCK
+  MENU_STOCK_ADJUSTMENT
+  MENU_SETTING
+  MENU_TRANSACTION_HISTORY
+  MENU_POS
+}
+
+/// Status akun pengguna — apakah boleh login atau tidak
+enum UserStatus {
+  ACTIVE // Akun aktif, bisa login dan menggunakan sistem
+  INACTIVE // Akun dinonaktifkan, tidak bisa login
+}
+
+/// Status bisnis di platform Mitbiz
+enum BusinessStatus {
+  ACTIVE // Bisnis aktif dan dapat menggunakan layanan
+  INACTIVE // Bisnis dinonaktifkan sementara
+  SUSPENDED // Bisnis dibekukan (misal: nunggak pembayaran)
+}
+
+/// Status outlet apakah sedang beroperasi atau tidak
+enum OutletStatus {
+  ACTIVE // Outlet sedang beroperasi
+  INACTIVE // Outlet ditutup / tidak aktif
+}
+
+/// Status produk di menu — ditampilkan di halaman produk kasir
+enum ProductStatus {
+  ACTIVE // Produk tersedia dan bisa ditambahkan ke transaksi
+  INACTIVE // Produk disembunyikan dari menu (stok habis / dihentikan)
+}
+
+/// Tipe penyesuaian stok — menentukan arah perubahan stok
+enum StockAdjustmentType {
+  IN // Stok bertambah  → contoh: restok dari supplier
+  OUT // Stok berkurang  → contoh: produk rusak, expired, hilang
+  CORRECTION // Koreksi manual  → contoh: hasil opname fisik berbeda dengan sistem
+}
+
+/// Status transaksi — menggambarkan tahapan hidup sebuah transaksi
+enum TransactionStatus {
+  PENDING // Transaksi masih terbuka (Open Bill) — belum dibayar
+  COMPLETED // Transaksi selesai dan sudah terbayar lunas
+  VOIDED // Transaksi dibatalkan / di-void oleh admin
+}
+
+/// Tipe pesanan — dipilih saat kasir memproses pembayaran
+/// Ditampilkan di layar "Detail Pesanan" dengan dua opsi pilihan
+enum OrderType {
+  DINE_IN // Makan di Tempat  → pelanggan makan di lokasi
+  TAKE_AWAY // Take Away        → pesanan dibawa pulang
+}
+
+/// Tipe metode pembayaran — kategori umum cara pembayaran
+enum PaymentMethodType {
+  CASH // Tunai / uang fisik
+  DEBIT // Kartu debit (gesek mesin EDC)
+  CREDIT // Kartu kredit (gesek mesin EDC)
+  QRIS // QR Code Indonesian Standard (GoPay, OVO, Dana, dll.)
+  TRANSFER // Transfer bank manual (BCA, Mandiri, dll.)
+  OTHER // Metode lain yang tidak masuk kategori di atas
+}
+
+/// Status langganan (subscription) sebuah Bisnis
+enum SubscriptionStatus {
+  ACTIVE // Langganan aktif dan dalam masa berlaku
+  EXPIRED // Langganan sudah habis masa berlakunya
+  CANCELLED // Langganan dibatalkan secara manual
+  TRIAL // Sedang dalam masa percobaan gratis
+}
+
+/// Siklus penagihan paket langganan
+enum BillingCycle {
+  MONTHLY // Dibayar per bulan
+  YEARLY // Dibayar per tahun (biasanya lebih murah)
+}
+
+// ============================================================
+// SUPER ADMIN — Manajemen Platform
+// ============================================================
+
+/// Business = satu bisnis yang berlangganan platform Mitbiz.
+/// Satu Business bisa memiliki banyak Outlet.
+/// Contoh: "Cafe Kita" adalah sebuah Business dengan 3 outlet.
+model Business {
+  id                String         @id @default(cuid()) // ID unik bisnis (format CUID, otomatis, digunakan secara internal)
+  businessCode      String         @unique // Kode tampilan unik, e.g. "BIZ-001" — dibuat otomatis oleh sistem saat pendaftaran
+  name              String // Nama bisnis, e.g. "Cafe Kita", "Warung Pak Budi"
+  slug              String         @unique // Versi URL-friendly dari nama, e.g. "cafe-kita" (harus unik)
+  businessCategory  String? // Kategori bisnis dari Register Step 2, e.g. "Restoran", "Retail", "Cafe"
+  city              String? // Kota lokasi bisnis dari Register Step 2, e.g. "Padang Panjang"
+  province          String? // Provinsi lokasi bisnis dari Register Step 2, e.g. "Sumatera Barat"
+  phone             String? // Nomor telepon bisnis untuk kontak (opsional)
+  email             String? // Alamat email bisnis untuk notifikasi (opsional)
+  address           String? // Alamat fisik kantor pusat / bisnis utama (opsional)
+  logoUrl           String? // URL gambar logo bisnis yang diupload ke cloud storage
+  status            BusinessStatus @default(ACTIVE) // Status bisnis: ACTIVE / INACTIVE / SUSPENDED
+  isDiscountEnabled Boolean        @default(false) // Apakah admin mengizinkan diskon kasir
+  maxDiscount       Int? // Batas maksimal diskon yang diizinkan (%)
+  isTaxEnabled      Boolean        @default(false) // Apakah transaksi dikenakan pajak
+  taxPercentage     Float? // Persentase pajak global
+  createdAt         DateTime       @default(now()) // Waktu pertama kali bisnis didaftarkan ke platform
+  updatedAt         DateTime       @updatedAt // Waktu terakhir data bisnis diubah (otomatis diperbarui)
+  deletedAt         DateTime? // Soft delete: diisi saat bisnis dihapus, null = masih aktif
+
+  // Relasi
+  outlets        Outlet[] // Daftar semua outlet milik bisnis ini
+  users          User[] // Daftar semua user (Admin, Kasir) yang terdaftar di bisnis ini
+  roles          Role[] // Daftar custom role yang dibuat oleh bisnis ini
+  subscriptions  BusinessSubscription[] // Riwayat langganan paket yang pernah / sedang aktif
+  paymentMethods PaymentMethod[] // Daftar metode pembayaran yang didefinisikan oleh bisnis ini
+
+  @@map("business") // Nama tabel di database PostgreSQL
+}
+
+/// Role = Jabatan dinamis yang dibuat oleh Admin (misal: "Gudang", "Kasir Senior")
+/// Menentukan menu apa saja yang boleh diakses oleh Staff.
+model Role {
+  id          String           @id @default(cuid()) // ID unik role
+  businessId  String // FK ke Business — Role ini milik bisnis mana
+  name        String // Nama role, e.g. "Manajer", "Kasir"
+  permissions MenuPermission[] // Array permission (menu yang dicentang)
+  isDefault   Boolean          @default(false) // Jika true, role dasar tidak bisa dihapus
+  createdAt   DateTime         @default(now()) // Waktu dibuat
+  updatedAt   DateTime         @updatedAt // Waktu diubah
+
+  // Relasi
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  users    User[] // User yang memiliki role ini
+
+  @@unique([businessId, name]) // Nama role tidak boleh sama di satu bisnis
+  @@index([businessId])
+  @@map("role") // Nama tabel di database
+}
+
+/// Package = paket layanan yang ditawarkan Super Admin kepada Tenant.
+/// Setiap paket punya harga, batas fitur, dan siklus tagihan masing-masing.
+/// Contoh: "Paket Starter" Rp 99.000/bulan, "Paket Pro" Rp 1.999.000/tahun.
+model Package {
+  id           String       @id @default(cuid()) // ID unik paket (format CUID, otomatis)
+  name         String       @unique // Nama paket, e.g. "Paket Starter" (harus unik)
+  description  String       @db.Text // Deskripsi lengkap isi dan manfaat paket
+  price        Int // Harga paket dalam satuan Rupiah (tanpa desimal)
+  currency     String       @default("IDR") // Kode mata uang, default "IDR" (Rupiah Indonesia)
+  billingCycle BillingCycle @default(MONTHLY) // Periode tagihan: MONTHLY atau YEARLY
+  maxBranches  Int          @default(1) // Batas maksimal jumlah cabang yang bisa dibuat
+  maxKasir     Int          @default(3) // Batas maksimal jumlah akun kasir yang bisa dibuat
+  isActive     Boolean      @default(true) // Apakah paket ini masih ditawarkan (bisa dibeli) atau sudah dihentikan
+  createdAt    DateTime     @default(now()) // Waktu paket dibuat oleh Super Admin
+  updatedAt    DateTime     @updatedAt // Waktu terakhir detail paket diubah
+
+  // Relasi
+  features      PackageFeature[] // Daftar fitur-fitur yang termasuk dalam paket ini
+  subscriptions BusinessSubscription[] // Daftar bisnis yang menggunakan paket ini
+
+  @@map("package") // Nama tabel di database — model "Package" disimpan ke tabel bernama "package"
+}
+
+/// PackageFeature = satu baris fitur yang termasuk dalam sebuah Package.
+/// Ditampilkan sebagai checklist di halaman detail paket.
+/// Contoh: "Manajemen Stok", "Laporan Harian", "Multi Cabang".
+model PackageFeature {
+  id        String   @id @default(cuid()) // ID unik fitur (format CUID, otomatis)
+  packageId String // FK ke Package — fitur ini milik paket mana
+  name      String // Nama fitur yang ditampilkan, e.g. "Laporan Harian"
+  createdAt DateTime @default(now()) // Waktu fitur ini ditambahkan ke paket
+  updatedAt DateTime @updatedAt // Waktu terakhir nama fitur diubah
+
+  // Relasi
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@map("package_feature") // Nama tabel di database — model "PackageFeature" disimpan ke tabel bernama "package_feature"
+}
+
+/// BusinessSubscription = record langganan aktif milik sebuah Bisnis.
+/// Satu Bisnis bisa punya riwayat banyak langganan (paket berbeda di waktu berbeda).
+model BusinessSubscription {
+  id         String             @id @default(cuid()) // ID unik record langganan
+  businessId String // FK ke Business — bisnis mana yang berlangganan
+  packageId  String // FK ke Package — paket apa yang diambil
+  status     SubscriptionStatus @default(ACTIVE) // Status: ACTIVE / EXPIRED / CANCELLED / TRIAL
+  startDate  DateTime           @default(now()) // Tanggal mulai masa berlaku langganan
+  endDate    DateTime // Tanggal berakhirnya masa berlaku langganan
+  createdAt  DateTime           @default(now()) // Waktu transaksi langganan ini dibuat
+  updatedAt  DateTime           @updatedAt // Waktu terakhir status langganan diubah
+
+  // Relasi
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  package  Package  @relation(fields: [packageId], references: [id])
+
+  @@index([businessId]) // Index pada kolom businessId
+  @@map("business_subscription") // Nama tabel di database
+}
+
+// ============================================================
+// ADMIN — Manajemen Cabang & Pengguna
+// ============================================================
+
+/// Outlet = Lokasi fisik milik sebuah Bisnis.
+/// Setiap Outlet punya data operasional sendiri: produk, stok, kasir, dan transaksi.
+/// Contoh: "Outlet Pusat Jakarta", "Outlet Tangerang".
+model Outlet {
+  id         String       @id @default(cuid()) // ID unik outlet (format CUID, otomatis)
+  businessId String // FK ke Business — outlet ini milik bisnis mana
+  name       String // Nama outlet, e.g. "Outlet Pusat Jakarta"
+  address    String? // Alamat lengkap lokasi outlet (opsional)
+  phone      String? // Nomor telepon outlet untuk kontak pelanggan (opsional)
+  status     OutletStatus @default(ACTIVE) // Status operasional outlet: ACTIVE / INACTIVE
+  createdAt  DateTime     @default(now()) // Waktu outlet didaftarkan ke sistem
+  updatedAt  DateTime     @updatedAt // Waktu terakhir data outlet diubah
+  deletedAt  DateTime? // Soft delete: diisi saat outlet dihapus, null = masih aktif
+
+  // Relasi
+  business             Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  users                User[] // Daftar user (Admin & Kasir) yang bertugas di outlet ini
+  products             Product[] // Daftar produk yang dijual di outlet ini
+  categories           Category[] // Daftar kategori produk milik outlet ini
+  stocks               Stock[] // Data stok semua produk di outlet ini
+  stockAdjustments     StockAdjustment[] // Riwayat semua penyesuaian stok di outlet ini
+  transactions         Transaction[] // Semua transaksi penjualan yang terjadi di outlet ini
+  shifts               Shift[] // Semua sesi shift kasir yang pernah berjalan di outlet ini
+  outletPaymentMethods OutletPaymentMethod[] // Metode pembayaran yang diaktifkan di outlet ini
+
+  @@index([businessId]) // Index pada kolom businessId
+  @@map("outlet") // Nama tabel di database
+}
+
+/// User = semua pengguna yang bisa login ke sistem.
+/// Role menentukan hak akses: Super Admin, Admin, Kasir, atau Owner.
+model User {
+  id                              String     @id @default(cuid()) // ID unik user (format CUID, otomatis)
+  businessId                      String? // FK ke Business — null jika user adalah SUPER_ADMIN
+  outletId                        String? // FK ke Outlet — null jika SUPER_ADMIN atau OWNER lintas outlet
+  roleId                          String? // FK ke Role — Diisi HANYA jika UserRole = STAFF (Jabatan Dinamis)
+  name                            String // Nama lengkap user, e.g. "Budi Santoso" — dari form Register Step 1
+  email                           String     @unique // Email untuk LOGIN — wajib diisi, harus unik (dari form Login & Register)
+  phone                           String? // Nomor WhatsApp user — dari form Register Step 1 (opsional untuk kasir)
+  password                        String // Password yang sudah di-hash menggunakan bcrypt min. 8 karakter (tidak plain text)
+  role                            UserRole   @default(STAFF) // Jabatan hirarki: SUPER_ADMIN / ADMIN / STAFF
+  status                          UserStatus @default(ACTIVE) // Status akun: ACTIVE = bisa login, INACTIVE = diblokir
+  avatarUrl                       String? // URL foto profil user — diupload ke Cloudinary, disimpan sebagai URL string (opsional)
+  lastLoginAt                     DateTime? // Waktu terakhir user berhasil login (untuk audit & monitoring)
+  emailVerifiedAt                 DateTime? // Waktu email diverifikasi — null berarti belum verifikasi
+  emailVerificationToken          String?    @unique // Token satu kali pakai untuk verifikasi email (UUID, dikirim via email)
+  emailVerificationTokenExpiresAt DateTime? // Kapan token verifikasi kadaluarsa (default: 15 menit setelah dikirim)
+  createdAt                       DateTime   @default(now()) // Waktu akun user pertama kali dibuat
+  updatedAt                       DateTime   @updatedAt // Waktu terakhir data user diubah
+  deletedAt                       DateTime? // Soft delete: diisi saat user dihapus, null = akun masih ada
+
+  // Relasi
+  customRole       Role?             @relation(fields: [roleId], references: [id])
+  business         Business?         @relation(fields: [businessId], references: [id])
+  outlet           Outlet?           @relation(fields: [outletId], references: [id])
+  tokens           TokenBlacklist[] // Daftar JWT token yang sudah di-logout / di-blacklist
+  transactions     Transaction[] // Transaksi yang diproses oleh user ini (sebagai kasir)
+  shifts           Shift[] // Sesi kerja (shift) yang dijalani oleh user ini
+  stockAdjustments StockAdjustment[] // Penyesuaian stok yang dilakukan oleh user ini
+
+  @@index([businessId]) // Index pada businessId
+  @@index([outletId]) // Index pada outletId
+  @@map("user") // Nama tabel di database
+}
+
+/// TokenBlacklist = daftar JWT token yang sudah tidak berlaku.
+/// Diisi setiap kali user melakukan logout agar token lama tidak bisa dipakai lagi.
+model TokenBlacklist {
+  id        String   @id @default(cuid()) // ID unik record blacklist
+  token     String   @unique // JWT token string yang sudah diblokir (harus unik)
+  userId    String // FK ke User — siapa yang melakukan logout
+  expiresAt DateTime // Waktu expired token ini (untuk keperluan cleanup otomatis)
+  createdAt DateTime @default(now()) // Waktu token dimasukkan ke blacklist (= waktu logout)
+
+  // Relasi
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId]) // Index pada userId — mempercepat query "hapus semua token blacklist milik user X"
+  @@map("token_blacklist") // Nama tabel di database — model "TokenBlacklist" → tabel "token_blacklist"
+}
+
+/// Shift = sesi kerja seorang Kasir dalam satu periode waktu.
+/// Kasir membuka shift saat mulai bekerja, lalu menutupnya saat selesai.
+/// Ditampilkan sebagai badge "Shift Aktif" di header aplikasi kasir.
+model Shift {
+  id          String    @id @default(cuid()) // ID unik shift (format CUID, otomatis)
+  outletId    String // FK ke Outlet — shift ini berjalan di outlet mana
+  kasirId     String // FK ke User — kasir mana yang menjalankan shift ini
+  openedAt    DateTime  @default(now()) // Waktu shift dibuka / kasir mulai bekerja
+  closedAt    DateTime? // Waktu shift ditutup — null berarti shift masih aktif/berjalan
+  openingCash Int       @default(0) // Jumlah uang kas awal saat shift dibuka (modal kasir)
+  closingCash Int? // Jumlah total uang kas saat shift ditutup — null jika belum tutup
+  notes       String? // Catatan tambahan dari kasir saat membuka/menutup shift (opsional)
+  createdAt   DateTime  @default(now()) // Waktu record shift ini dibuat di database
+  updatedAt   DateTime  @updatedAt // Waktu terakhir data shift diubah
+
+  // Relasi
+  outlet       Outlet        @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  kasir        User          @relation(fields: [kasirId], references: [id])
+  transactions Transaction[] // Semua transaksi yang terjadi dalam sesi shift ini
+
+  @@index([outletId]) // Index pada outletId
+  @@index([kasirId]) // Index pada kasirId
+  @@map("shift") // Nama tabel di database
+}
+
+// ============================================================
+// PRODUK & KATEGORI
+// ============================================================
+
+/// Category = Kategori pengelompokan produk di dalam sebuah Outlet.
+/// Ditampilkan sebagai tab filter di halaman transaksi kasir.
+/// Contoh: "Makanan", "Minuman", "Snack", "Alat Tulis".
+model Category {
+  id        String    @id @default(cuid()) // ID unik kategori (format CUID, otomatis)
+  outletId  String // FK ke Outlet — kategori ini milik outlet mana
+  name      String // Nama kategori yang ditampilkan, e.g. "Makanan", "Minuman"
+  createdAt DateTime  @default(now()) // Waktu kategori pertama kali dibuat
+  updatedAt DateTime  @updatedAt // Waktu terakhir nama kategori diubah
+  deletedAt DateTime? // Soft delete: diisi saat kategori dihapus, null = masih aktif
+
+  // Relasi
+  outlet   Outlet    @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  products Product[] // Daftar produk yang masuk dalam kategori ini
+
+  @@unique([outletId, name]) // Kombinasi unik: nama kategori tidak boleh duplikat di outlet yang sama
+  @@index([outletId]) // Index pada outletId
+  @@map("category") // Nama tabel di database
+}
+
+/// Product = Produk atau menu item yang dijual di sebuah Outlet.
+/// Ditampilkan di halaman "Pilih Produk" pada aplikasi kasir.
+/// Data produk mengikuti design Figma: Foto, Nama, SKU, Harga, Diskon, Kategori, Status.
+model Product {
+  id         String        @id @default(cuid()) // ID unik produk (format CUID, otomatis)
+  outletId   String // FK ke Outlet — produk ini dijual di outlet mana
+  categoryId String? // FK ke Category — produk masuk kategori apa (opsional)
+  name       String // Nama produk yang ditampilkan di menu, e.g. "Nasi Goreng Spesial"
+  sku        String // Kode unik produk (Stock Keeping Unit), e.g. "FD-001"
+  price      Int // Harga jual produk dalam satuan Rupiah (tanpa desimal)
+  discount   Int           @default(0) // Persentase diskon produk (0–100). Masukkan 0 jika tidak ada diskon
+  imageUrl   String? // URL foto produk dari Cloudinary — didapat setelah upload via POST /products/upload-image (opsional)
+  status     ProductStatus @default(ACTIVE) // Status produk: ACTIVE = tampil di menu, INACTIVE = disembunyikan
+  createdAt  DateTime      @default(now()) // Waktu produk pertama kali ditambahkan
+  updatedAt  DateTime      @updatedAt // Waktu terakhir data produk diubah
+  deletedAt  DateTime? // Soft delete: diisi saat produk dihapus, null = masih ada
+
+  // Relasi
+  outlet           Outlet            @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  category         Category?         @relation(fields: [categoryId], references: [id])
+  stock            Stock? // Data stok produk ini (relasi 1-to-1)
+  stockAdjustments StockAdjustment[] // Riwayat semua perubahan stok produk ini
+  transactionItems TransactionItem[] // Daftar item transaksi yang mengandung produk ini
+
+  @@unique([outletId, sku]) // Kombinasi unik: SKU tidak boleh duplikat di outlet yang sama
+  @@index([outletId]) // Index pada outletId
+  @@index([categoryId]) // Index pada categoryId
+  @@map("product") // Nama tabel di database
+}
+
+// ============================================================
+// STOK & INVENTORI
+// ============================================================
+
+/// Stock = data stok real-time untuk setiap produk di sebuah outlet.
+/// Relasi 1-to-1 dengan Product. Dikelola di halaman "Manajemen Stok".
+model Stock {
+  id          String   @id @default(cuid()) // ID unik record stok
+  outletId    String // FK ke Outlet — stok ini ada di outlet mana
+  productId   String   @unique // FK ke Product — 1 produk hanya punya 1 record stok
+  quantity    Int      @default(0) // Jumlah stok yang tersedia saat ini (satuan unit)
+  minQuantity Int      @default(0) // Batas minimum stok — jika quantity <= ini, tampilkan alert "Stok Menipis"
+  createdAt   DateTime @default(now()) // Waktu record stok pertama kali dibuat (saat produk ditambahkan)
+  updatedAt   DateTime @updatedAt // Waktu terakhir jumlah stok berubah
+
+  // Relasi
+  outlet  Outlet  @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([outletId]) // Index pada outletId
+  @@map("stock") // Nama tabel di database
+}
+
+/// StockAdjustment = catatan setiap perubahan stok secara manual (audit trail).
+/// Digunakan di halaman "Penyesuaian Stok" oleh Admin.
+/// Alasan penyesuaian wajib diisi agar perubahan stok bisa dilacak.
+model StockAdjustment {
+  id        String              @id @default(cuid()) // ID unik record penyesuaian stok
+  outletId  String // FK ke Outlet — penyesuaian terjadi di outlet mana
+  productId String // FK ke Product — produk mana yang disesuaikan stoknya
+  userId    String? // FK ke User — Admin / Kasir yang melakukan penyesuaian ini (opsional)
+  type      StockAdjustmentType // Arah perubahan: IN (tambah), OUT (kurang), CORRECTION (koreksi)
+  quantity  Int // Jumlah unit yang ditambah / dikurangi (selalu angka positif)
+  notes     String? // Alasan penyesuaian, e.g. "Restok dari supplier", "Produk rusak/expired"
+  createdAt DateTime            @default(now()) // Waktu penyesuaian stok dilakukan
+
+  // Relasi
+  outlet  Outlet  @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id])
+
+  @@index([outletId]) // Index pada outletId
+  @@index([productId]) // Index pada productId
+  @@map("stock_adjustment") // Nama tabel di database
+}
+
+// ============================================================
+// METODE PEMBAYARAN
+// ============================================================
+
+/// PaymentMethod = metode pembayaran yang didefinisikan di level Bisnis.
+/// Admin kemudian memilih metode mana yang diaktifkan per Outlet via OutletPaymentMethod.
+/// Contoh: "Tunai", "QRIS", "Transfer BCA", "Kartu Debit".
+model PaymentMethod {
+  id         String            @id @default(cuid()) // ID unik metode pembayaran
+  businessId String // FK ke Business — metode ini milik bisnis mana
+  name       String // Nama metode yang ditampilkan, e.g. "QRIS", "Kartu Debit BCA"
+  type       PaymentMethodType @default(CASH) // Tipe kategori: CASH / QRIS / DEBIT / TRANSFER / dll.
+  isActive   Boolean           @default(true) // Apakah metode ini masih tersedia untuk dipilih atau sudah dinonaktifkan
+  createdAt  DateTime          @default(now()) // Waktu metode pembayaran pertama kali ditambahkan
+  updatedAt  DateTime          @updatedAt // Waktu terakhir data metode diubah
+
+  // Relasi
+  business             Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  outletPaymentMethods OutletPaymentMethod[] // Daftar outlet yang mengaktifkan metode pembayaran ini
+  transactions         Transaction[] // Transaksi yang menggunakan metode pembayaran ini
+
+  @@unique([businessId, name]) // Kombinasi unik: nama metode tidak boleh duplikat dalam satu bisnis
+  @@index([businessId]) // Index pada businessId
+  @@map("payment_method") // Nama tabel di database
+}
+
+/// OutletPaymentMethod = tabel pivot penghubung Outlet dengan PaymentMethod.
+/// Mengontrol metode pembayaran mana yang aktif di outlet mana.
+/// Sesuai design: "Tunai" bisa aktif di 3 outlet, "QRIS" aktif di 2 outlet.
+model OutletPaymentMethod {
+  id              String   @id @default(cuid()) // ID unik record pivot ini
+  outletId        String // FK ke Outlet — outlet mana yang menggunakan metode ini
+  paymentMethodId String // FK ke PaymentMethod — metode apa yang diaktifkan
+  isActive        Boolean  @default(true) // Apakah metode ini saat ini aktif di outlet ini (bisa dinonaktifkan)
+  createdAt       DateTime @default(now()) // Waktu metode ini pertama kali diaktifkan di outlet
+  updatedAt       DateTime @updatedAt // Waktu terakhir status aktif/nonaktif diubah
+
+  // Relasi
+  outlet        Outlet        @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
+
+  @@unique([outletId, paymentMethodId]) // Kombinasi unik: satu metode tidak boleh didaftarkan dua kali ke outlet yang sama
+  @@index([outletId]) // Index pada outletId
+  @@map("outlet_payment_method") // Nama tabel di database
+}
+
+// ============================================================
+// TRANSAKSI PENJUALAN
+// ============================================================
+
+/// Transaction = satu sesi transaksi penjualan lengkap.
+/// Dibuat oleh kasir, berisi daftar produk, total harga, metode bayar, dan kembalian.
+/// Satu transaksi bisa berisi banyak TransactionItem (detail produk).
+model Transaction {
+  id              String            @id @default(cuid()) // ID unik transaksi (format CUID, otomatis)
+  outletId        String // FK ke Outlet — transaksi terjadi di outlet mana
+  kasirId         String // FK ke User — kasir mana yang memproses transaksi ini
+  shiftId         String? // FK ke Shift — transaksi masuk dalam sesi shift mana (opsional)
+  paymentMethodId String? // FK ke PaymentMethod — metode yang dipakai pelanggan untuk bayar
+  invoiceNumber   String            @unique // Nomor invoice unik, e.g. "INV/2026/03/00005"
+  orderType       OrderType         @default(DINE_IN) // Tipe pesanan: DINE_IN (makan di tempat) atau TAKE_AWAY (dibawa pulang)
+  subtotal        Int // Total harga semua item sebelum diskon dan pajak diterapkan (Rupiah)
+  discountAmount  Int               @default(0) // Jumlah potongan diskon keseluruhan transaksi dalam Rupiah
+  taxAmount       Int               @default(0) // Jumlah pajak yang dikenakan (e.g. PPN 12%) dalam Rupiah
+  totalAmount     Int // Total akhir yang harus dibayar pelanggan (subtotal - diskon + pajak)
+  amountPaid      Int               @default(0) // Jumlah uang yang diterima dari pelanggan (0 jika Open Bill / PENDING)
+  changeAmount    Int               @default(0) // Kembalian yang diberikan ke pelanggan (amountPaid - totalAmount)
+  notes           String? // Catatan tambahan dari kasir untuk transaksi ini (opsional)
+  status          TransactionStatus @default(COMPLETED) // Status: PENDING (Open Bill) / COMPLETED (lunas) / VOIDED (batal)
+  voidedAt        DateTime? // Waktu transaksi di-void — null jika belum pernah di-void
+  voidReason      String? // Alasan void / pembatalan transaksi yang diisi admin
+  createdAt       DateTime          @default(now()) // Waktu transaksi pertama kali dibuat (= waktu kasir mulai order)
+  updatedAt       DateTime          @updatedAt // Waktu terakhir data transaksi diubah
+
+  // Relasi
+  outlet        Outlet            @relation(fields: [outletId], references: [id])
+  kasir         User              @relation(fields: [kasirId], references: [id])
+  shift         Shift?            @relation(fields: [shiftId], references: [id])
+  paymentMethod PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
+  items         TransactionItem[] // Daftar detail produk yang dibeli dalam transaksi ini
+
+  @@index([outletId]) // Index pada outletId
+  @@index([kasirId]) // Index pada kasirId
+  @@index([shiftId]) // Index pada shiftId
+  @@index([createdAt]) // Index pada createdAt
+  @@map("transaction") // Nama tabel di database
+}
+
+/// TransactionItem = detail satu baris produk dalam sebuah Transaction.
+/// Menggunakan "snapshot" fields agar data historis tidak berubah
+/// meskipun harga / nama produk asli di-edit oleh admin di kemudian hari.
+model TransactionItem {
+  id            String @id @default(cuid()) // ID unik item transaksi
+  transactionId String // FK ke Transaction — item ini bagian dari transaksi mana
+  productId     String // FK ke Product — sebagai referensi, tapi data aktual disimpan sebagai snapshot
+  productName   String // Snapshot nama produk SAAT transaksi terjadi — tidak berubah meski produk diedit
+  productSku    String // Snapshot kode SKU produk SAAT transaksi terjadi — tidak berubah meski produk diedit
+  price         Int // Snapshot harga satuan produk SAAT transaksi terjadi (dalam Rupiah)
+  discount      Int    @default(0) // Snapshot persentase diskon produk SAAT transaksi terjadi (0–100)
+  quantity      Int // Jumlah unit produk ini yang dibeli dalam satu transaksi
+  subtotal      Int // Total harga item ini: (price × quantity) dikurangi diskon
+
+  createdAt DateTime @default(now()) // Waktu item ini ditambahkan ke transaksi
+
+  // Relasi
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  product     Product     @relation(fields: [productId], references: [id])
+
+  @@index([transactionId]) // Index pada transactionId — mempercepat query "ambil semua item dalam transaksi X"
+  @@index([productId]) // Index pada productId — mempercepat query "produk X pernah dibeli di transaksi mana saja"
+  @@map("transaction_item") // Nama tabel di database — model "TransactionItem" → tabel "transaction_item"
+}
+
+// ============================================================
+// PENGATURAN SISTEM (SUPER ADMIN)
+// ============================================================
+
+/// SystemSetting = konfigurasi global aplikasi yang hanya bisa diubah oleh Super Admin.
+/// Ditampilkan di halaman "Pengaturan" pada panel Super Admin.
+/// Hanya ada satu baris record (singleton pattern — id = "global").
+/// Field: Nama Aplikasi, Logo, Bahasa, Zona Waktu, Mata Uang, Format Tanggal.
+model SystemSetting {
+  id              String   @id @default("global") // Singleton: hanya ada satu baris, id selalu "global"
+  appName         String   @default("Mitbiz POS") // Nama aplikasi yang ditampilkan di seluruh UI
+  logoUrl         String? // URL logo sistem (upload file, max 10MB PNG/JPEG)
+  defaultLanguage String   @default("Indonesia") // Bahasa antarmuka default, e.g. "Indonesia", "English"
+  timezone        String   @default("Asia/Jakarta") // Zona waktu server, e.g. "Asia/Jakarta" (GMT+7)
+  currency        String   @default("IDR") // Kode mata uang default, e.g. "IDR" (Rupiah Indonesia)
+  dateFormat      String   @default("DD/MM/YYYY") // Format tanggal tampilan, e.g. "DD/MM/YYYY", "MM/DD/YYYY"
+  updatedAt       DateTime @updatedAt // Waktu terakhir pengaturan diubah (otomatis diperbarui)
+
+  @@map("system_setting") // Nama tabel di database — model "SystemSetting" → tabel "system_setting"
+}
