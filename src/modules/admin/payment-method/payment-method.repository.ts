@@ -1,5 +1,6 @@
-import { prisma } from '@config/prisma';
-import { PaymentMethod, OutletPaymentMethod, Prisma } from '@prisma/client';
+import { PrismaClient, PaymentMethod, OutletPaymentMethod, Prisma } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export class PaymentMethodRepository {
   /**
@@ -90,7 +91,7 @@ export class PaymentMethodRepository {
   /**
    * Mengambil metode pembayaran yang AKTIF di cabang tertentu
    */
-  async findActiveByBranch(outletId: string): Promise<OutletPaymentMethod[]> {
+  async findActiveByBranch(outletId: string) {
     return prisma.outletPaymentMethod.findMany({
       where: {
         outletId,

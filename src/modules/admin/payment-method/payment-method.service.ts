@@ -1,7 +1,7 @@
 import { paymentMethodRepository } from './payment-method.repository';
 import { CreatePaymentMethodDto } from './dto/create-payment-method.dto';
 import { UpdatePaymentMethodDto } from './dto/update-payment-method.dto';
-import { AppError } from '@common/errors/AppError';
+import { AppError } from '@common/utils/app-error.util';
 
 export class PaymentMethodService {
   async getMethodsByBusiness(businessId: string) {
