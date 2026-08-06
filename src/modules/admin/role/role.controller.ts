@@ -3,6 +3,7 @@ import { roleService } from './role.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AppError } from '@common/utils/app-error.util';
+import { MenuPermission } from '@prisma/client';
 
 // Helper: safely extract string from JWT field that might be string | string[]
 const asString = (val: string | string[] | undefined | null): string | undefined => {
@@ -37,6 +38,18 @@ export class RoleController {
       res.status(200).json({
         success: true,
         data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAvailablePermissions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const permissions = Object.values(MenuPermission);
+      res.status(200).json({
+        success: true,
+        data: permissions,
       });
     } catch (error) {
       next(error);

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { CreateRoleDto } from './create-role.dto';
+import { CreateRoleBaseSchema, roleRefinement, roleRefinementMessage } from './create-role.dto';
 
-export const UpdateRoleDto = CreateRoleDto.partial();
+export const UpdateRoleDto = CreateRoleBaseSchema.partial().refine(roleRefinement, roleRefinementMessage);
 
 export type UpdateRoleType = z.infer<typeof UpdateRoleDto>;

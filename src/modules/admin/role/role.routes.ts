@@ -14,6 +14,9 @@ router.use(jwtAuthGuard);
 // Siapapun yang punya MENU_STAFF (bisa Admin/Super Admin/Staff berwenang) boleh akses
 router.get('/', requirePermissions([MenuPermission.MENU_STAFF]), roleController.getAllRoles);
 
+// Mendapatkan daftar semua permission yang tersedia
+router.get('/permissions', requirePermissions([MenuPermission.MENU_STAFF]), roleController.getAvailablePermissions);
+
 // Mendapatkan detail role
 router.get('/:id', requirePermissions([MenuPermission.MENU_STAFF]), roleController.getRoleById);
 
@@ -23,7 +26,7 @@ router.get('/:id', requirePermissions([MenuPermission.MENU_STAFF]), roleControll
 router.use(requireRoles('SUPER_ADMIN', 'ADMIN'));
 
 router.post('/', roleController.createRole);
-router.put('/:id', roleController.updateRole);
+router.patch('/:id', roleController.updateRole);
 router.delete('/:id', roleController.deleteRole);
 
 export default router;
