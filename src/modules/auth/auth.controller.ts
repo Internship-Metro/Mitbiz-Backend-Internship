@@ -11,8 +11,8 @@ export class AuthController {
       const result = await authService.registerStep1(data);
       
       const { accessToken, refreshToken } = result.tokens;
-      res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
-      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
+      res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
+      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
       
       sendSuccess(res, { user: result.user }, 'Berhasil membuat akun. Cek email untuk verifikasi.', 201);
     } catch (error) {
@@ -29,8 +29,8 @@ export class AuthController {
       const result = await authService.verifyEmail(token);
       
       const { accessToken, refreshToken } = result.tokens;
-      res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
-      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
+      res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
+      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
       
       sendSuccess(res, { user: result.user }, 'Email berhasil diverifikasi! Akun kamu sudah aktif, silakan login.');
     } catch (error) {
@@ -67,14 +67,14 @@ export class AuthController {
       const result = await authService.login(data);
       
       if (result.requiresRegistration) {
-        res.cookie('registrationToken', result.registrationToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
+        res.cookie('registrationToken', result.registrationToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
         const { registrationToken, ...rest } = result;
         return sendSuccess(res, rest, result.message);
       }
       
       const { accessToken, refreshToken } = result.tokens!;
-      res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
-      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
+      res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
+      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
       
       const { tokens, ...safeResult } = result;
       sendSuccess(res, safeResult, 'Login berhasil');
@@ -148,7 +148,7 @@ export class AuthController {
       }
       const result = await authService.refreshAccessToken(refreshToken);
       
-      res.cookie('accessToken', result.accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
+      res.cookie('accessToken', result.accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
       
       sendSuccess(res, { tokens: { accessToken: result.accessToken } }, 'Access token berhasil diperbarui');
     } catch (error) {
