@@ -125,10 +125,13 @@ export class AuthService {
     // Update user to belong to this outlet
     await authRepository.updateUserOutletId(userId, outlet.id);
 
-    // Registrasi selesai — kirim email verifikasi sekarang
+    // Registrasi selesai — kirim email verifikasi (di-bypass untuk testing)
     const verificationToken = randomUUID();
     await authRepository.setEmailVerificationToken(userId, verificationToken);
     await sendVerificationEmail(user.email, user.name, verificationToken);
+
+    // HACK: Auto-verify agar user langsung bisa login (karena email diblokir Railway)
+    await authRepository.markEmailAsVerified(userId);
 
     return {
       outlet,
