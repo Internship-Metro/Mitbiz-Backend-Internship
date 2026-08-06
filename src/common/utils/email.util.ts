@@ -1,5 +1,10 @@
 import nodemailer from 'nodemailer';
 import { env } from '@config/env';
+import dns from 'dns';
+
+// Fix ENETUNREACH IPv6 issue (biasa terjadi di Railway / Docker)
+// Memaksa DNS resolver Node.js untuk memprioritaskan IPv4 daripada IPv6
+dns.setDefaultResultOrder('ipv4first');
 
 // Buat transporter Nodemailer sekali — pakai untuk semua pengiriman email
 const transporter = nodemailer.createTransport({
