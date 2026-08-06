@@ -1,7 +1,5 @@
 import { prisma } from '@/prisma/client';
 import { UserRole } from '@prisma/client';
-import { CreateUserType } from './dto/create-user.dto';
-import { UpdateUserType } from './dto/update-user.dto';
 
 export class UserRepository {
   /**
@@ -143,7 +141,14 @@ export class UserRepository {
   /**
    * Update data user (partial)
    */
-  async update(id: string, data: UpdateUserType) {
+  async update(id: string, data: {
+    name?: string;
+    phone?: string;
+    status?: 'ACTIVE' | 'INACTIVE';
+    roleId?: string;
+    outletId?: string;
+    avatarUrl?: string;
+  }) {
     return prisma.user.update({
       where: { id },
       data: {
@@ -202,6 +207,16 @@ export class UserRepository {
       select: { id: true },
     });
     return !!role;
+  }
+  /**
+   * Update password (digunakan untuk fitur reset password)
+   */
+  async updatePassword(id: string, passwordHash: string) {
+    return prisma.user.update({
+      where: { id },
+      data: { password: passwordHash },
+      select: { id: true },
+    });
   }
 }
 

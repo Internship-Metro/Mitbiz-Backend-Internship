@@ -9,10 +9,7 @@ export const CreateUserDto = z.object({
     .max(20, 'Nomor telepon maksimal 20 digit')
     .optional(),
   password: z.string().min(8, 'Password minimal 8 karakter'),
-  role: z.enum(['ADMIN', 'STAFF']),
-  roleId: z.string().cuid('roleId harus berupa CUID yang valid').optional(),
-  outletId: z.string().cuid('outletId harus berupa CUID yang valid').optional(),
-  businessId: z.string().cuid('businessId harus berupa CUID yang valid').optional(),
+  businessId: z.string().cuid('businessId harus berupa CUID yang valid'),
 });
 
 export type CreateUserType = z.infer<typeof CreateUserDto>;

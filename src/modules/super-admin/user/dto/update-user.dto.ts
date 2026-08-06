@@ -8,10 +8,7 @@ export const UpdateUserDto = z.object({
     .max(20, 'Nomor telepon maksimal 20 digit')
     .optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
-  // Role (UserRole) TIDAK boleh diubah oleh Admin, tetapi roleId (Custom Role) BOLEH diubah.
-  roleId: z.string().cuid('roleId harus berupa CUID yang valid').optional(),
-  outletId: z.string().cuid('outletId harus berupa CUID yang valid').optional(),
-  avatarUrl: z.string().url('avatarUrl harus berupa URL yang valid').optional(),
+  businessId: z.string().cuid('businessId harus berupa CUID yang valid').optional(),
 });
 
 export type UpdateUserType = z.infer<typeof UpdateUserDto>;
