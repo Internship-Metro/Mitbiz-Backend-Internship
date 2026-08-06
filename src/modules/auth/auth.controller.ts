@@ -14,7 +14,7 @@ export class AuthController {
       res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
       res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
       
-      sendSuccess(res, { user: result.user }, 'Berhasil membuat akun. Cek email untuk verifikasi.', 201);
+      sendSuccess(res, { user: result.user }, 'Berhasil membuat profil akun. Silakan lanjut ke Step 2 untuk mendaftarkan bisnis.', 201);
     } catch (error) {
       next(error);
     }
