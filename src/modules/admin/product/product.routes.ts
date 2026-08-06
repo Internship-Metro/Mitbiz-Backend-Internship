@@ -17,7 +17,7 @@ router.get('/:id', requirePermissions([MenuPermission.MENU_PRODUCT, MenuPermissi
 
 // POST, PUT, DELETE: Bisa diakses
 router.post('/', requirePermissions([MenuPermission.MENU_PRODUCT]), uploadSingle, controller.createProduct);
-router.put('/:id', requirePermissions([MenuPermission.MENU_PRODUCT]), uploadSingle, controller.updateProduct);
+router.patch('/:id', requirePermissions([MenuPermission.MENU_PRODUCT]), uploadSingle, controller.updateProduct);
 router.delete('/:id', requirePermissions([MenuPermission.MENU_PRODUCT]), controller.deleteProduct);
 
 export default router;

@@ -18,7 +18,7 @@ router.get('/:id', requirePermissions([MenuPermission.MENU_CATEGORY, MenuPermiss
 
 // Write access
 router.post('/', requirePermissions([MenuPermission.MENU_CATEGORY]), categoryController.createCategory);
-router.put('/:id', requirePermissions([MenuPermission.MENU_CATEGORY]), categoryController.updateCategory);
+router.patch('/:id', requirePermissions([MenuPermission.MENU_CATEGORY]), categoryController.updateCategory);
 router.delete('/:id', requirePermissions([MenuPermission.MENU_CATEGORY]), categoryController.deleteCategory);
 
 export default router;
