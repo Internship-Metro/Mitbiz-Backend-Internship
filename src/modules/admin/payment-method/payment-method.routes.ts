@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { paymentMethodController } from './payment-method.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
-import { requireRoles } from '@common/guards/roles.guard';
-import { UserRole } from '@prisma/client';
+import { requirePermissions } from '@common/guards/permissions.guard';
+import { MenuPermission } from '@prisma/client';
 
 const router = Router();
 
@@ -13,10 +13,10 @@ const router = Router();
 
 router.use('/payment-methods', jwtAuthGuard);
 
-router.get('/payment-methods', requireRoles('ADMIN'), paymentMethodController.getMethods);
-router.post('/payment-methods', requireRoles('ADMIN'), paymentMethodController.createMethod);
-router.patch('/payment-methods/:id', requireRoles('ADMIN'), paymentMethodController.updateMethod);
-router.delete('/payment-methods/:id', requireRoles('ADMIN'), paymentMethodController.deleteMethod);
+router.get('/payment-methods', requirePermissions(['MENU_PAYMENT']), paymentMethodController.getMethods);
+router.post('/payment-methods', requirePermissions(['MENU_PAYMENT']), paymentMethodController.createMethod);
+router.patch('/payment-methods/:id', requirePermissions(['MENU_PAYMENT']), paymentMethodController.updateMethod);
+router.delete('/payment-methods/:id', requirePermissions(['MENU_PAYMENT']), paymentMethodController.deleteMethod);
 
 
 // ==========================================
@@ -27,8 +27,8 @@ router.delete('/payment-methods/:id', requireRoles('ADMIN'), paymentMethodContro
 // Bisa diakses oleh Kasir (STAFF) dan Admin
 router.get('/outlets/:outletId/payment-methods', jwtAuthGuard, paymentMethodController.getActiveMethodsByBranch);
 
-// Hanya bisa diatur oleh Admin
-router.post('/outlets/:outletId/payment-methods', jwtAuthGuard, requireRoles('ADMIN'), paymentMethodController.activateInBranch);
-router.delete('/outlets/:outletId/payment-methods/:id', jwtAuthGuard, requireRoles('ADMIN'), paymentMethodController.deactivateInBranch);
+// Hanya bisa diatur oleh user yang punya akses MENU_PAYMENT (Admin / Staff yang diberi izin)
+router.post('/outlets/:outletId/payment-methods', jwtAuthGuard, requirePermissions(['MENU_PAYMENT']), paymentMethodController.activateInBranch);
+router.delete('/outlets/:outletId/payment-methods/:id', jwtAuthGuard, requirePermissions(['MENU_PAYMENT']), paymentMethodController.deactivateInBranch);
 
 export default router;
