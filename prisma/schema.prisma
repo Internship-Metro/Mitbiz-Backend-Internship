@@ -458,6 +458,7 @@ model PaymentMethod {
   businessId String // FK ke Business — metode ini milik bisnis mana
   name       String // Nama metode yang ditampilkan, e.g. "QRIS", "Kartu Debit BCA"
   type       PaymentMethodType @default(CASH) // Tipe kategori: CASH / QRIS / DEBIT / TRANSFER / dll.
+  details    String?           // Keterangan tambahan, e.g. "BCA 123456789 a.n Budi" (Opsional)
   isActive   Boolean           @default(true) // Apakah metode ini masih tersedia untuk dipilih atau sudah dinonaktifkan
   createdAt  DateTime          @default(now()) // Waktu metode pembayaran pertama kali ditambahkan
   updatedAt  DateTime          @updatedAt // Waktu terakhir data metode diubah

@@ -34,6 +34,7 @@ import productRoutes from './modules/admin/product/product.routes';
 import stockRoutes from './modules/admin/stock/stock.routes';
 import roleRoutes from './modules/admin/role/role.routes';
 import shiftRoutes from './modules/admin/shift/shift.routes';
+import paymentMethodRoutes from './modules/admin/payment-method/payment-method.routes';
 // TODO: Import route modules di sini saat setiap modul selesai dibuat
 
 const app: Application = express();
@@ -93,8 +94,8 @@ app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/stocks', stockRoutes);
 app.use('/api/v1/roles', roleRoutes);
 app.use('/api/v1/shifts', shiftRoutes);
+app.use('/api/v1', paymentMethodRoutes);
 // TODO: Uncomment satu per satu saat modul selesai dibuat
-// app.use('/api/v1/payment-methods', paymentMethodRouter)
 // app.use('/api/v1/transactions', transactionRouter)
 // app.use('/api/v1/dashboard', dashboardRouter)
 // app.use('/api/v1/reports', reportRouter)
