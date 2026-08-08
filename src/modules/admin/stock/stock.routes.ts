@@ -20,8 +20,8 @@ stockRouter.get(
   stockController.getAdjustments
 );
 
-// POST /api/v1/stocks/adjust
-stockRouter.post(
+// PATCH /api/v1/stocks/adjust
+stockRouter.patch(
   '/adjust',
   requirePermissions([MenuPermission.MENU_STOCK_ADJUSTMENT]),
   stockController.adjustStock
