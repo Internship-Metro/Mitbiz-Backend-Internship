@@ -23,9 +23,7 @@ import { env } from '@config/env';
 import { morganLogger } from '@common/middlewares/logger.middleware';
 import { httpExceptionFilter } from '@common/filters/http-exception.filter';
 import { sendError } from '@common/utils/response.util';
-import path from 'path';
-import YAML from 'yamljs';
-import { apiReference } from '@scalar/express-api-reference';
+
 
 // ─── Import Routes ─────────────────────────────────────────────────────────
 import authRoutes from './modules/auth/auth.routes';
@@ -50,8 +48,7 @@ const app: Application = express();
 
 // ─── Security Middleware ──────────────────────────────────────────────────
 // Helmet: pasang berbagai HTTP security header otomatis
-// CSP dimatikan agar Scalar API Reference (UI) bisa me-load script-nya
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet());
 
 // CORS: izinkan request dari domain frontend yang sudah terdaftar
 app.use(
@@ -93,18 +90,9 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// ─── API Documentation (Scalar) ─────────────────────────────────────────────
-const openapiDocument = YAML.load(path.join(__dirname, 'docs/openapi.yaml'));
-app.use(
-  '/docs',
-  apiReference({
-    theme: 'default',
-    layout: 'modern',
-    spec: {
-      content: openapiDocument,
-    },
-  })
-);
+// ─── API Documentation ────────────────────────────────────────────────────
+// Dokumentasi API tersedia di Scalar cloud registry (tidak di-host di server ini)
+// Link: akan ditambahkan setelah publish ke registry.scalar.com
 
 // ─── API Routes ───────────────────────────────────────────────────────────
 // Mount semua router di sini dengan prefix /api/v1
