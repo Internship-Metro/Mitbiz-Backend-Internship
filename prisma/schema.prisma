@@ -508,6 +508,8 @@ model Transaction {
   paymentMethodId String? // FK ke PaymentMethod — metode yang dipakai pelanggan untuk bayar
   invoiceNumber   String            @unique // Nomor invoice unik, e.g. "INV/2026/03/00005"
   orderType       OrderType         @default(DINE_IN) // Tipe pesanan: DINE_IN (makan di tempat) atau TAKE_AWAY (dibawa pulang)
+  customerName    String? // Nama pelanggan (untuk Dine In)
+  tableNumber     String? // Nomor meja (untuk Dine In)
   subtotal        Int // Total harga semua item sebelum diskon dan pajak diterapkan (Rupiah)
   discountAmount  Int               @default(0) // Jumlah potongan diskon keseluruhan transaksi dalam Rupiah
   taxAmount       Int               @default(0) // Jumlah pajak yang dikenakan (e.g. PPN 12%) dalam Rupiah
