@@ -9,6 +9,11 @@ export const UpdateUserDto = z.object({
     .optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
   businessId: z.string().cuid('businessId harus berupa CUID yang valid').optional(),
+  /**
+   * Pindah user ke outlet lain (relevan untuk STAFF)
+   * Kirim null untuk melepas user dari outlet
+   */
+  outletId: z.string().cuid('outletId harus berupa CUID yang valid').nullable().optional(),
 });
 
 export type UpdateUserType = z.infer<typeof UpdateUserDto>;

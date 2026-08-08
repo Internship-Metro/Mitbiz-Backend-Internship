@@ -11,6 +11,9 @@ const router = Router();
 // Endpoint ini eksklusif hanya untuk SUPER_ADMIN
 router.use(jwtAuthGuard, requireRoles('SUPER_ADMIN'));
 
+// PENTING: /summary harus SEBELUM /:id — agar tidak dianggap sebagai param ID
+router.get('/summary', superAdminUserController.getUserSummary);
+
 router.get('/', superAdminUserController.getAllUsers);
 router.get('/:id', superAdminUserController.getUserById);
 router.post('/', validate(CreateUserDto), superAdminUserController.createUser);

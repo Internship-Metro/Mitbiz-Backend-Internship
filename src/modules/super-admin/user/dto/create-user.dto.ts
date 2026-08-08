@@ -10,6 +10,28 @@ export const CreateUserDto = z.object({
     .optional(),
   password: z.string().min(8, 'Password minimal 8 karakter'),
   businessId: z.string().cuid('businessId harus berupa CUID yang valid'),
-});
+  /**
+   * Role yang akan diberikan ke user baru.
+   * - ADMIN  : Pemilik / Administrator bisnis (tidak perlu outletId)
+   * - STAFF  : Kasir / pegawai (perlu outletId)
+   * Default: ADMIN
+   */
+  role: z.enum(['ADMIN', 'STAFF']).optional().default('ADMIN'),
+  /**
+   * ID outlet tempat user ini bertugas.
+   * Wajib jika role = STAFF, opsional jika role = ADMIN.
+   */
+  outletId: z.string().cuid('outletId harus berupa CUID yang valid').optional(),
+}).refine(
+  (data) => {
+    // Jika role STAFF, outletId wajib ada
+    if (data.role === 'STAFF' && !data.outletId) return false;
+    return true;
+  },
+  {
+    message: 'outletId wajib diisi jika role adalah STAFF',
+    path: ['outletId'],
+  },
+);
 
 export type CreateUserType = z.infer<typeof CreateUserDto>;

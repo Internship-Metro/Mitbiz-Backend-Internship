@@ -3,12 +3,31 @@ import { superAdminUserService } from './user.service';
 import { sendSuccess } from '@common/utils/response.util';
 
 export class SuperAdminUserController {
+  /**
+   * GET /api/v1/superadmin/users/summary
+   * Returns: totalAdmin, totalKasir, totalUser
+   */
+  async getUserSummary(req: Request, res: Response, next: NextFunction) {
+    try {
+      const summary = await superAdminUserService.getUserSummary();
+      sendSuccess(res, summary, 'Berhasil mendapatkan ringkasan user');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/v1/superadmin/users
+   * Query: businessId?, outletId?, role?, search?, page?, limit?
+   */
   async getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
-      const { businessId, search, page, limit } = req.query;
+      const { businessId, outletId, role, search, page, limit } = req.query;
 
       const result = await superAdminUserService.getAllUsers({
         businessId: businessId as string | undefined,
+        outletId: outletId as string | undefined,
+        role: role as string | undefined,
         search: search as string | undefined,
         page: page ? parseInt(page as string, 10) : 1,
         limit: limit ? parseInt(limit as string, 10) : 10,
@@ -32,7 +51,7 @@ export class SuperAdminUserController {
   async createUser(req: Request, res: Response, next: NextFunction) {
     try {
       const user = await superAdminUserService.createUser(req.body);
-      sendSuccess(res, user, 'User pemilik bisnis berhasil dibuat', 201);
+      sendSuccess(res, user, 'User berhasil dibuat', 201);
     } catch (error) {
       next(error);
     }
