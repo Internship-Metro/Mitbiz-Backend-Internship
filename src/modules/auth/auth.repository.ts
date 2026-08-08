@@ -8,14 +8,14 @@ type TokenBlacklist = Awaited<ReturnType<typeof prisma.tokenBlacklist.findUnique
 
 export class AuthRepository {
   async findUserByEmail(email: string) {
-    return prisma.user.findUnique({
+    return prisma.user.findFirst({
       where: { email },
       include: { customRole: true },
     });
   }
 
   async findByUsername(username: string) {
-    return prisma.user.findUnique({
+    return prisma.user.findFirst({
       where: { username },
       include: { customRole: true },
     });
