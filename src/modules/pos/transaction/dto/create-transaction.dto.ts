@@ -1,0 +1,21 @@
+import { z } from 'zod';
+import { OrderType } from '@prisma/client';
+
+export const createTransactionItemSchema = z.object({
+  productId: z.string({ message: 'Product ID is required' }),
+  quantity: z.number({ message: 'Quantity is required' }).min(1, { message: 'Quantity must be at least 1' }),
+});
+
+export const createTransactionSchema = z.object({
+  orderType: z.nativeEnum(OrderType, { message: 'Order type must be DINE_IN or TAKE_AWAY' }),
+  customerName: z.string().optional(),
+  tableNumber: z.string().optional(),
+  discountAmount: z.number().min(0, { message: 'Discount amount cannot be negative' }).optional(),
+  paymentMethodId: z.string().optional(), // Optional if status is PENDING (Open Bill)
+  amountPaid: z.number().min(0, { message: 'Amount paid cannot be negative' }).optional(),
+  notes: z.string().optional(),
+  items: z.array(createTransactionItemSchema).min(1, { message: 'At least one item is required' }),
+});
+
+export type CreateTransactionDto = z.infer<typeof createTransactionSchema>;
+export type CreateTransactionItemDto = z.infer<typeof createTransactionItemSchema>;
