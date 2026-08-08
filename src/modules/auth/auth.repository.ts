@@ -14,6 +14,13 @@ export class AuthRepository {
     });
   }
 
+  async findByUsername(username: string) {
+    return prisma.user.findUnique({
+      where: { username },
+      include: { customRole: true },
+    });
+  }
+
   async findUserById(id: string) {
     return prisma.user.findUnique({
       where: { id },

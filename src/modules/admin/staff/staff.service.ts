@@ -43,10 +43,10 @@ export class StaffService {
   }
 
   async createStaff(data: CreateStaffType, requesterBusinessId: string) {
-    // Cek duplikasi email
-    const existingUser = await userRepository.findByEmail(data.email);
-    if (existingUser) {
-      throw new AppError('Email sudah terdaftar', 400);
+    // Cek duplikasi username
+    const existingByUsername = await userRepository.findByUsername(data.username);
+    if (existingByUsername) {
+      throw new AppError('Username sudah digunakan', 400);
     }
 
     // Validasi outlet (jika ada)
@@ -64,9 +64,13 @@ export class StaffService {
     const hashedPassword = await hashPassword(data.password);
 
     const newUser = await userRepository.create({
-      ...data,
+      name: data.name,
+      username: data.username,
+      phone: data.phone,
       password: hashedPassword,
       role: 'STAFF',
+      roleId: data.roleId,
+      outletId: data.outletId,
       businessId: requesterBusinessId,
       status: 'ACTIVE',
       emailVerifiedAt: new Date(),
@@ -80,6 +84,12 @@ export class StaffService {
 
     if (!user || user.role !== 'STAFF' || user.businessId !== requesterBusinessId) {
       throw new AppError('Staff tidak ditemukan', 404);
+    }
+
+    // Cek duplikasi username jika diubah
+    if (data.username && data.username !== user.username) {
+      const existingByUsername = await userRepository.findByUsername(data.username);
+      if (existingByUsername) throw new AppError('Username sudah digunakan', 400);
     }
 
     // Validasi outlet (jika diubah)

@@ -277,7 +277,8 @@ model User {
   outletId                        String? // FK ke Outlet — null jika SUPER_ADMIN atau OWNER lintas outlet
   roleId                          String? // FK ke Role — Diisi HANYA jika UserRole = STAFF (Jabatan Dinamis)
   name                            String // Nama lengkap user, e.g. "Budi Santoso" — dari form Register Step 1
-  email                           String     @unique // Email untuk LOGIN — wajib diisi, harus unik (dari form Login & Register)
+  username                        String?    @unique // Username untuk LOGIN STAFF — diisi admin/super admin saat buat akun staff
+  email                           String?    @unique // Email untuk LOGIN ADMIN/OWNER — opsional untuk STAFF (tidak punya email kerja)
   phone                           String? // Nomor WhatsApp user — dari form Register Step 1 (opsional untuk kasir)
   password                        String // Password yang sudah di-hash menggunakan bcrypt min. 8 karakter (tidak plain text)
   role                            UserRole   @default(STAFF) // Jabatan hirarki: SUPER_ADMIN / ADMIN / STAFF

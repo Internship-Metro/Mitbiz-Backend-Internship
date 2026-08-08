@@ -92,9 +92,20 @@ export class SuperAdminUserService {
    * - Jika role = STAFF: outletId wajib ada (sudah divalidasi di DTO)
    */
   async createUser(data: CreateUserType) {
-    const existingUser = await userRepository.findByEmail(data.email);
-    if (existingUser) {
-      throw new AppError('Email sudah terdaftar', 400);
+    // Cek duplikasi email (untuk ADMIN)
+    if (data.email) {
+      const existingByEmail = await userRepository.findByEmail(data.email);
+      if (existingByEmail) {
+        throw new AppError('Email sudah terdaftar', 400);
+      }
+    }
+
+    // Cek duplikasi username (untuk STAFF)
+    if (data.username) {
+      const existingByUsername = await userRepository.findByUsername(data.username);
+      if (existingByUsername) {
+        throw new AppError('Username sudah digunakan', 400);
+      }
     }
 
     // Validasi businessId ada
@@ -127,6 +138,7 @@ export class SuperAdminUserService {
 
     const newUser = await userRepository.create({
       name: data.name,
+      username: data.username,
       email: data.email,
       phone: data.phone,
       password: hashedPassword,

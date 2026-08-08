@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export const LoginDto = z.object({
-  email: z.string().email('Format email tidak valid'),
-  password: z.string().min(1, 'Password wajib diisi') // Cukup cek isi, tidak perlu min 8 saat login
+  identifier: z.string().min(1, 'Email atau username wajib diisi'), // bisa email atau username
+  password: z.string().min(1, 'Password wajib diisi'),
 });
 
 export type LoginType = z.infer<typeof LoginDto>;

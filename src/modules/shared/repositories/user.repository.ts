@@ -36,6 +36,7 @@ export class UserRepository {
         OR: [
           { name: { contains: search, mode: 'insensitive' as const } },
           { email: { contains: search, mode: 'insensitive' as const } },
+          { username: { contains: search, mode: 'insensitive' as const } },
         ],
       }),
     };
@@ -49,6 +50,7 @@ export class UserRepository {
         select: {
           id: true,
           name: true,
+          username: true,
           email: true,
           phone: true,
           role: true,
@@ -81,6 +83,7 @@ export class UserRepository {
       select: {
         id: true,
         name: true,
+        username: true,
         email: true,
         phone: true,
         role: true,
@@ -101,10 +104,17 @@ export class UserRepository {
   }
 
   /**
-   * Cari user by email — dipakai untuk cek duplikat sebelum create
+   * Cari user by email — dipakai untuk cek duplikat sebelum create (ADMIN/OWNER)
    */
   async findByEmail(email: string) {
     return prisma.user.findUnique({ where: { email } });
+  }
+
+  /**
+   * Cari user by username — dipakai untuk cek duplikat sebelum create STAFF
+   */
+  async findByUsername(username: string) {
+    return prisma.user.findUnique({ where: { username } });
   }
 
   /**
@@ -112,7 +122,8 @@ export class UserRepository {
    */
   async create(data: {
     name: string;
-    email: string;
+    username?: string;
+    email?: string;
     phone?: string;
     password: string;
     role: 'SUPER_ADMIN' | 'ADMIN' | 'STAFF';
@@ -127,6 +138,7 @@ export class UserRepository {
       select: {
         id: true,
         name: true,
+        username: true,
         email: true,
         phone: true,
         role: true,
@@ -143,6 +155,7 @@ export class UserRepository {
    */
   async update(id: string, data: {
     name?: string;
+    username?: string;
     phone?: string;
     status?: 'ACTIVE' | 'INACTIVE';
     roleId?: string;
@@ -153,6 +166,7 @@ export class UserRepository {
       where: { id },
       data: {
         ...(data.name !== undefined && { name: data.name }),
+        ...(data.username !== undefined && { username: data.username }),
         ...(data.phone !== undefined && { phone: data.phone }),
         ...(data.status !== undefined && { status: data.status }),
         ...(data.roleId !== undefined && { roleId: data.roleId }),
@@ -162,6 +176,7 @@ export class UserRepository {
       select: {
         id: true,
         name: true,
+        username: true,
         email: true,
         phone: true,
         role: true,
@@ -208,6 +223,7 @@ export class UserRepository {
     });
     return !!role;
   }
+
   /**
    * Update password (digunakan untuk fitur reset password)
    */

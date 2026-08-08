@@ -128,7 +128,7 @@ export class AuthService {
     // Registrasi selesai — kirim email verifikasi sekarang
     const verificationToken = randomUUID();
     await authRepository.setEmailVerificationToken(userId, verificationToken);
-    await sendVerificationEmail(user.email, user.name, verificationToken);
+    await sendVerificationEmail(user.email!, user.name, verificationToken);
 
     return {
       outlet,
@@ -140,16 +140,21 @@ export class AuthService {
    * Login
    */
   async login(data: LoginType) {
-    const user = await authRepository.findUserByEmail(data.email);
+    // Auto-detect: ada '@' → email, tidak ada → username
+    const isEmail = data.identifier.includes('@');
+    const user = isEmail
+      ? await authRepository.findUserByEmail(data.identifier)
+      : await authRepository.findByUsername(data.identifier);
+
     if (!user) {
-      throw new AppError('Email atau password salah', 401);
+      throw new AppError('Email/username atau password salah', 401);
     }
 
     // Verifikasi password terlebih dahulu — selalu cek password meski akun belum aktif
     // Ini mencegah enumeration attack (orang tidak bisa tahu apakah email terdaftar dari error message)
     const isMatch = await comparePassword(data.password, user.password);
     if (!isMatch) {
-      throw new AppError('Email atau password salah', 401);
+      throw new AppError('Email/username atau password salah', 401);
     }
 
     // ── Deteksi: registrasi belum selesai ────────────────────────────────────
@@ -293,7 +298,7 @@ export class AuthService {
     // Generate token baru dan kirim email
     const verificationToken = randomUUID();
     await authRepository.setEmailVerificationToken(user.id, verificationToken);
-    await sendVerificationEmail(user.email, user.name, verificationToken);
+    await sendVerificationEmail(user.email!, user.name, verificationToken);
 
     return { message: 'Jika email terdaftar dan belum diverifikasi, link verifikasi baru sudah dikirim.' };
   }
