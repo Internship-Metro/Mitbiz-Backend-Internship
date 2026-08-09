@@ -1,8 +1,12 @@
 import nodemailer from 'nodemailer';
 import { env } from '@config/env';
 
-// Buat transporter Nodemailer sekali — pakai untuk semua pengiriman email
-const transporter = nodemailer.createTransport({
+// Konfigurasi SMTP dipisahkan ke variabel tersendiri.
+// 'family: 4' adalah opsi valid nodemailer (paksa IPv4, Railway tidak support IPv6),
+// tetapi tidak selalu ada di type definitions nodemailer sehingga perlu 'as any'
+// agar TypeScript tidak gagal resolve overload createTransport.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const smtpConfig: any = {
   host: env.SMTP_HOST,
   port: env.SMTP_PORT,
   secure: false,      // false untuk port 587 (STARTTLS) — true hanya untuk port 465
@@ -12,7 +16,10 @@ const transporter = nodemailer.createTransport({
     user: env.SMTP_USER,
     pass: env.SMTP_PASS,
   },
-});
+};
+
+// Buat transporter Nodemailer sekali — pakai untuk semua pengiriman email
+const transporter = nodemailer.createTransport(smtpConfig);
 
 /**
  * Kirim email verifikasi akun ke user yang baru daftar
