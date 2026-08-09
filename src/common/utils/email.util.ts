@@ -7,6 +7,7 @@ const transporter = nodemailer.createTransport({
   port: env.SMTP_PORT,
   secure: false,      // false untuk port 587 (STARTTLS) — true hanya untuk port 465
   requireTLS: true,   // Wajib pakai TLS (keamanan koneksi)
+  family: 4,          // Paksa IPv4 — Railway tidak support koneksi keluar via IPv6
   auth: {
     user: env.SMTP_USER,
     pass: env.SMTP_PASS,
