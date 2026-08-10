@@ -8,8 +8,12 @@ import { env } from '@config/env';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const smtpConfig: any = {
   host: env.SMTP_HOST,
-  port: env.SMTP_PORT,   // 2525 — port alternatif Mailtrap, tidak diblokir Railway
-  secure: false,         // false untuk port 2525 (STARTTLS opsional)
+  port: env.SMTP_PORT,      // 2525 — port alternatif Mailtrap
+  secure: false,
+  family: 4,                // Paksa IPv4 — Railway tidak support koneksi keluar via IPv6
+  connectionTimeout: 8000,  // Gagal cepat dalam 8 detik (default nodemailer = 2 menit)
+  greetingTimeout: 8000,    // Timeout saat handshake SMTP
+  socketTimeout: 8000,      // Timeout per operasi socket
   auth: {
     user: env.SMTP_USER,
     pass: env.SMTP_PASS,
