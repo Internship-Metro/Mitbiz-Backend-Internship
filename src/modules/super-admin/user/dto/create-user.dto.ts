@@ -35,6 +35,12 @@ export const CreateUserDto = z.object({
    * Wajib jika role = STAFF, opsional jika role = ADMIN.
    */
   outletId: z.string().cuid('outletId harus berupa CUID yang valid').optional(),
+  /**
+   * ID Custom Role (dari tabel Role) untuk STAFF.
+   * Misalnya ID untuk role "Kasir" atau "Supervisor".
+   * Berlaku jika role = STAFF.
+   */
+  roleId: z.string().cuid('roleId harus berupa CUID yang valid').optional(),
 }).superRefine((data, ctx) => {
   if (data.role === 'STAFF') {
     // STAFF wajib punya username

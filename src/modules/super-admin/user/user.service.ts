@@ -135,6 +135,18 @@ export class SuperAdminUserService {
       }
     }
 
+    // Validasi roleId jika dikirim
+    if (data.role === 'STAFF' && data.roleId) {
+      const customRole = await prisma.role.findFirst({
+        where: { id: data.roleId, businessId: data.businessId },
+        select: { id: true },
+      });
+
+      if (!customRole) {
+        throw new AppError('Custom Role (Jabatan) tidak ditemukan atau tidak milik bisnis ini', 404);
+      }
+    }
+
     const hashedPassword = await hashPassword(data.password);
 
     const newUser = await userRepository.create({
@@ -146,6 +158,7 @@ export class SuperAdminUserService {
       role: data.role ?? 'ADMIN',
       businessId: data.businessId,
       outletId: data.role === 'STAFF' ? data.outletId : undefined, // Admin tidak diikat ke outlet
+      roleId: data.role === 'STAFF' ? data.roleId : undefined, // Assign Custom Role jika ada
       status: 'ACTIVE',
       emailVerifiedAt: new Date(),
     });
