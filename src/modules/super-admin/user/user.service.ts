@@ -88,8 +88,9 @@ export class SuperAdminUserService {
 
   /**
    * Buat user baru (ADMIN atau STAFF).
-   * - Jika role = ADMIN: tidak perlu outletId
-   * - Jika role = STAFF: outletId wajib ada (sudah divalidasi di DTO)
+   * - Jika role = ADMIN: TIDAK perlu outletId. Admin mengakses semua outlet
+   *   via businessId (sama seperti endpoint Outlet yang filter by businessId).
+   * - Jika role = STAFF: outletId WAJIB ada (sudah divalidasi di DTO).
    */
   async createUser(data: CreateUserType) {
     // Cek duplikasi email (untuk ADMIN)
@@ -122,7 +123,7 @@ export class SuperAdminUserService {
       throw new AppError('Bisnis sedang dibekukan, tidak bisa menambah user', 400);
     }
 
-    // Validasi outletId jika STAFF
+    // Validasi outletId — hanya relevan untuk STAFF
     if (data.role === 'STAFF' && data.outletId) {
       const outlet = await prisma.outlet.findFirst({
         where: { id: data.outletId, businessId: data.businessId, deletedAt: null },
@@ -144,7 +145,7 @@ export class SuperAdminUserService {
       password: hashedPassword,
       role: data.role ?? 'ADMIN',
       businessId: data.businessId,
-      outletId: data.role === 'STAFF' ? data.outletId : undefined,
+      outletId: data.role === 'STAFF' ? data.outletId : undefined, // Admin tidak diikat ke outlet
       status: 'ACTIVE',
       emailVerifiedAt: new Date(),
     });

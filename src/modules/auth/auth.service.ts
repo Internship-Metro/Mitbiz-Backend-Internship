@@ -162,9 +162,6 @@ export class AuthService {
       phone: data.outletPhone,
     });
 
-    // Update user to belong to this outlet
-    await authRepository.updateUserOutletId(userId, outlet.id);
-
     // Registrasi selesai — kirim email verifikasi sekarang
     const verificationToken = randomUUID();
     await authRepository.setEmailVerificationToken(userId, verificationToken);
