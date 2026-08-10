@@ -43,6 +43,11 @@ router.post('/register/step2', registrationGuard, validate(RegisterStep2Dto), au
 // Register Step 3: Daftarkan cabang pertama
 router.post('/register/step3', registrationGuard, validate(RegisterStep3Dto), authController.registerStep3);
 
+// Batalkan registrasi yang belum selesai (hapus semua data user INACTIVE)
+// Dipanggil frontend saat user klik "Batalkan" di dialog konfirmasi registrasi
+router.delete('/register/cancel', registrationGuard, authController.cancelRegistration);
+
+
 // Logout (blacklist token)
 router.post('/logout', jwtAuthGuard, authController.logout);
 

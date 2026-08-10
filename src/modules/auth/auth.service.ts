@@ -67,8 +67,31 @@ export class AuthService {
   }
 
   /**
+   * Cancel Registration: Hapus semua data registrasi yang belum selesai.
+   *
+   * Dipanggil ketika user memilih "Batalkan" di dialog konfirmasi registrasi.
+   * Hanya bisa dilakukan pada akun INACTIVE (belum verifikasi email).
+   */
+  async cancelRegistration(userId: string): Promise<void> {
+    const user = await authRepository.findUserById(userId);
+    if (!user) throw new AppError('User tidak ditemukan', 404);
+
+    // Hanya boleh batalkan registrasi yang belum selesai (akun INACTIVE)
+    if (user.status === 'ACTIVE') {
+      throw new AppError(
+        'Tidak bisa membatalkan registrasi akun yang sudah aktif.',
+        400,
+      );
+    }
+
+    // Hapus user beserta semua data terkait (bisnis + outlet)
+    await authRepository.deleteUserAndRelatedData(userId);
+  }
+
+  /**
    * Register Step 2: Create business (Bisnis)
    */
+
   async registerStep2(userId: string, data: RegisterStep2Type) {
     const user = await authRepository.findUserById(userId);
     if (!user) throw new AppError('User tidak ditemukan', 404);

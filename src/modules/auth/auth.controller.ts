@@ -155,6 +155,27 @@ export class AuthController {
       next(error);
     }
   }
+
+  /**
+   * DELETE /register/cancel
+   * Batalkan registrasi yang belum selesai.
+   * Hanya bisa dilakukan pada akun INACTIVE (belum verifikasi email).
+   * Auth: registrationGuard (butuh JWT dari step 1)
+   */
+  async cancelRegistration(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      await authService.cancelRegistration(userId);
+
+      // Hapus cookies JWT agar frontend tidak menyimpan token registrasi yang sudah tidak valid
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
+
+      sendSuccess(res, null, 'Registrasi berhasil dibatalkan. Semua data pendaftaran telah dihapus.');
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const authController = new AuthController();
