@@ -2,18 +2,14 @@ import nodemailer from 'nodemailer';
 import { env } from '@config/env';
 
 // Konfigurasi SMTP dipisahkan ke variabel tersendiri.
-// 'family: 4' adalah opsi valid nodemailer (paksa IPv4, Railway tidak support IPv6),
-// tetapi tidak selalu ada di type definitions nodemailer sehingga perlu 'as any'
-// agar TypeScript tidak gagal resolve overload createTransport.
-//
-// Port 465 (SSL langsung) dipakai karena Railway memblokir/throttle port 587 (STARTTLS)
-// yang menyebabkan connection timeout. Port 465 lebih andal di Railway.
+// Mailtrap sandbox dipakai untuk testing — email tertangkap di virtual inbox Mailtrap.
+// Port 2525 dipakai karena Railway tidak memblokir port ini
+// (Railway hanya memblokir 465/587 yang merupakan port SMTP standar).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const smtpConfig: any = {
   host: env.SMTP_HOST,
-  port: 465,          // Port 465 = SSL/TLS langsung (lebih andal di Railway vs 587 STARTTLS)
-  secure: true,       // true untuk port 465 (koneksi dienkripsi dari awal)
-  family: 4,          // Paksa IPv4 — Railway tidak support koneksi keluar via IPv6
+  port: env.SMTP_PORT,   // 2525 — port alternatif Mailtrap, tidak diblokir Railway
+  secure: false,         // false untuk port 2525 (STARTTLS opsional)
   auth: {
     user: env.SMTP_USER,
     pass: env.SMTP_PASS,

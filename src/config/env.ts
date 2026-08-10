@@ -39,13 +39,17 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().min(1, 'CLOUDINARY_API_KEY wajib diisi'),
   CLOUDINARY_API_SECRET: z.string().min(1, 'CLOUDINARY_API_SECRET wajib diisi'),
 
-  // ─── Email (Nodemailer) ────────────────────────────────────────────
+  // ─── Email (Nodemailer + Mailtrap) ──────────────────────────────────
+  // Mailtrap sandbox dipakai untuk testing — email masuk ke virtual inbox.
+  // Port 2525 dipakai karena Railway tidak memblokir port ini
+  // (berbeda dengan 465/587 yang diblokir Railway untuk mencegah spam).
   SMTP_HOST: z.string().default('sandbox.smtp.mailtrap.io'),
   SMTP_PORT: z.string().default('2525').transform(Number),
-  SMTP_USER: z.string().min(1, 'SMTP_USER wajib diisi (dari Mailtrap)'),
-  SMTP_PASS: z.string().min(1, 'SMTP_PASS wajib diisi (dari Mailtrap)'),
+  SMTP_USER: z.string().min(1, 'SMTP_USER wajib diisi'),
+  SMTP_PASS: z.string().min(1, 'SMTP_PASS wajib diisi'),
   EMAIL_FROM: z.string().default('noreply@mitbiz.com'),
   APP_URL: z.string().default('http://localhost:3000'), // Base URL untuk link verifikasi
+
 });
 
 // Jalankan validasi — kalau gagal, tampilkan semua error lalu hentikan proses
