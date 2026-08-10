@@ -14,7 +14,8 @@ export class AuthController {
       res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
       res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
       
-      sendSuccess(res, { user: result.user }, 'Berhasil membuat profil akun. Silakan lanjut ke Step 2 untuk mendaftarkan bisnis.', 201);
+      // Kembalikan token di response body agar bisa dicopy untuk test Step 2 dan 3 di Scalar
+      sendSuccess(res, { user: result.user, tokens: result.tokens }, 'Berhasil membuat profil akun. Silakan lanjut ke Step 2 untuk mendaftarkan bisnis.', 201);
     } catch (error) {
       next(error);
     }
@@ -29,10 +30,15 @@ export class AuthController {
       const result = await authService.verifyEmail(token);
       
       const { accessToken, refreshToken } = result.tokens;
-      res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
-      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
       
-      sendSuccess(res, { user: result.user }, 'Email berhasil diverifikasi! Akun kamu sudah aktif, silakan login.');
+      // Cookie dikembalikan ke aturan awal (ketat) untuk keamanan produksi
+      const isProd = process.env.NODE_ENV === 'production';
+      const cookieOptions = { httpOnly: true, secure: isProd, sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax' };
+      res.cookie('accessToken', accessToken, cookieOptions);
+      res.cookie('refreshToken', refreshToken, cookieOptions);
+      
+      // KITA KEMBALIKAN TOKEN KE DALAM BODY SUPAYA SCALAR BISA BACA
+      sendSuccess(res, { user: result.user, tokens: result.tokens }, 'Email berhasil diverifikasi! Akun kamu sudah aktif, silakan login.');
     } catch (error) {
       next(error);
     }
@@ -66,18 +72,21 @@ export class AuthController {
       const data = req.body;
       const result = await authService.login(data);
       
-      if (result.requiresRegistration) {
-        res.cookie('registrationToken', result.registrationToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
-        const { registrationToken, ...rest } = result;
-        return sendSuccess(res, rest, result.message);
+      const isProd = process.env.NODE_ENV === 'production';
+      const cookieOptions = { httpOnly: true, secure: isProd, sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax' };
+      
+      if (result.requiresRegistration && result.registrationToken) {
+        res.cookie('registrationToken', result.registrationToken, cookieOptions);
+        // Tetap kirim registrationToken di response body
+        return sendSuccess(res, result, result.message);
       }
       
       const { accessToken, refreshToken } = result.tokens!;
-      res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
-      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
+      res.cookie('accessToken', accessToken, cookieOptions);
+      res.cookie('refreshToken', refreshToken, cookieOptions);
       
-      const { tokens, ...safeResult } = result;
-      sendSuccess(res, safeResult, 'Login berhasil');
+      // KITA KEMBALIKAN TOKEN KE DALAM BODY SUPAYA SCALAR BISA BACA
+      sendSuccess(res, result, 'Login berhasil');
     } catch (error) {
       next(error);
     }
@@ -148,7 +157,9 @@ export class AuthController {
       }
       const result = await authService.refreshAccessToken(refreshToken);
       
-      res.cookie('accessToken', result.accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
+      const isProd = process.env.NODE_ENV === 'production';
+      const cookieOptions = { httpOnly: true, secure: isProd, sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax' };
+      res.cookie('accessToken', result.accessToken, cookieOptions);
       
       sendSuccess(res, { tokens: { accessToken: result.accessToken } }, 'Access token berhasil diperbarui');
     } catch (error) {

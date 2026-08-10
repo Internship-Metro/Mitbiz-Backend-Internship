@@ -420,6 +420,7 @@ export class AuthService {
       businessId: user.businessId,
       outletId: user.outletId,
       avatarUrl: user.avatarUrl,
+      permissions: user.customRole?.permissions || [], // <-- Tambahan untuk frontend
     };
   }
 }
