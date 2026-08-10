@@ -5,12 +5,14 @@ import { env } from '@config/env';
 // 'family: 4' adalah opsi valid nodemailer (paksa IPv4, Railway tidak support IPv6),
 // tetapi tidak selalu ada di type definitions nodemailer sehingga perlu 'as any'
 // agar TypeScript tidak gagal resolve overload createTransport.
+//
+// Port 465 (SSL langsung) dipakai karena Railway memblokir/throttle port 587 (STARTTLS)
+// yang menyebabkan connection timeout. Port 465 lebih andal di Railway.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const smtpConfig: any = {
   host: env.SMTP_HOST,
-  port: env.SMTP_PORT,
-  secure: false,      // false untuk port 587 (STARTTLS) — true hanya untuk port 465
-  requireTLS: true,   // Wajib pakai TLS (keamanan koneksi)
+  port: 465,          // Port 465 = SSL/TLS langsung (lebih andal di Railway vs 587 STARTTLS)
+  secure: true,       // true untuk port 465 (koneksi dienkripsi dari awal)
   family: 4,          // Paksa IPv4 — Railway tidak support koneksi keluar via IPv6
   auth: {
     user: env.SMTP_USER,
