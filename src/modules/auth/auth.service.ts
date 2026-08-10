@@ -85,17 +85,34 @@ export class AuthService {
     const slug = data.businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
 
     // Generate businessCode otomatis: BIZ-001, BIZ-002, dst.
-    const totalBusinesses = await authRepository.countBusinesses();
-    const businessCode = `BIZ-${String(totalBusinesses + 1).padStart(3, '0')}`;
+    // Pakai MAX businessCode yang ada (bukan COUNT) agar tidak bentrok
+    // ketika ada bisnis yang dihapus oleh cleanup job.
+    const latestCode = await authRepository.findLatestBusinessCode();
+    let nextNumber = 1;
+    if (latestCode) {
+      const match = latestCode.match(/BIZ-(\d+)/);
+      if (match) nextNumber = parseInt(match[1], 10) + 1;
+    }
+    const businessCode = `BIZ-${String(nextNumber).padStart(3, '0')}`;
 
-    const business = await authRepository.createBusiness({
-      name: data.businessName,
-      slug: slug,
-      businessCode: businessCode,
-      businessCategory: data.businessCategory,
-      city: data.city,
-      province: data.province,
-    });
+    let business;
+    try {
+      business = await authRepository.createBusiness({
+        name: data.businessName,
+        slug: slug,
+        businessCode: businessCode,
+        businessCategory: data.businessCategory,
+        city: data.city,
+        province: data.province,
+      });
+    } catch (err: any) {
+      // P2002 = unique constraint violation
+      // Terjadi jika ada race condition (dua request bersamaan)
+      if (err?.code === 'P2002' && err?.meta?.target?.includes('businessCode')) {
+        throw new AppError('Terjadi konflik data bisnis. Silakan coba lagi.', 409);
+      }
+      throw err;
+    }
 
     // Hubungkan user ke bisnis yang baru dibuat
     await authRepository.updateUserBusinessId(userId, business.id);

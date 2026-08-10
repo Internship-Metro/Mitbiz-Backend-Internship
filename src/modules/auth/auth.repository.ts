@@ -54,11 +54,20 @@ export class AuthRepository {
   }
 
   /**
-   * Hitung total bisnis yang ada (termasuk yang soft-deleted)
-   * Dipakai untuk generate businessCode otomatis (BIZ-001, BIZ-002, dst)
+   * Cari businessCode tertinggi yang ada di DB.
+   * Dipakai untuk generate businessCode berikutnya (BIZ-001, BIZ-002, dst).
+   *
+   * KENAPA BUKAN COUNT?
+   * COUNT turun ketika bisnis dihapus (cleanup job), sehingga kode baru
+   * bisa bentrok dengan kode yang pernah ada sebelumnya.
+   * MAX selalu menghasilkan nomor di atas yang pernah ada.
    */
-  async countBusinesses(): Promise<number> {
-    return prisma.business.count();
+  async findLatestBusinessCode(): Promise<string | null> {
+    const latest = await prisma.business.findFirst({
+      orderBy: { businessCode: 'desc' },
+      select: { businessCode: true },
+    });
+    return latest?.businessCode ?? null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
