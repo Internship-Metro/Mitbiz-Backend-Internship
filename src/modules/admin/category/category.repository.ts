@@ -45,11 +45,14 @@ export class CategoryRepository {
   }
 
   async findByName(branchId: string, name: string) {
+    // Cek semua kategori termasuk yang sudah di-soft delete
+    // Ini penting agar unique constraint DB tidak ter-trigger secara mengejutkan.
+    // Kalau nama sudah ada (bahkan yang sudah dihapus), kita tolak dengan pesan ramah.
     return prisma.category.findFirst({
       where: { 
         outletId: branchId, 
         name: { equals: name, mode: 'insensitive' },
-        deletedAt: null 
+        // TIDAK filter deletedAt: null — sengaja agar nama soft-deleted pun dicek
       },
     });
   }
@@ -74,6 +77,17 @@ export class CategoryRepository {
     return prisma.category.update({
       where: { id },
       data: { deletedAt: new Date() },
+    });
+  }
+
+  /**
+   * Pulihkan kategori yang pernah di-soft delete.
+   * Dipanggil otomatis saat user mencoba membuat kategori dengan nama yang sama.
+   */
+  async restore(id: string) {
+    return prisma.category.update({
+      where: { id },
+      data: { deletedAt: null },
     });
   }
 }

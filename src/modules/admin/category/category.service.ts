@@ -17,10 +17,19 @@ export class CategoryService {
   }
 
   async createCategory(data: CreateCategoryType) {
-    // Cek apakah nama kategori sudah ada di cabang tersebut
+    // Cek apakah nama kategori sudah ada di cabang tersebut (termasuk yang sudah dihapus)
     const existingCategory = await categoryRepository.findByName(data.branchId, data.name);
+
     if (existingCategory) {
-      throw new AppError('Nama kategori sudah digunakan di cabang ini', 400);
+      // Kalau yang ditemukan adalah kategori yang sudah di-soft delete,
+      // PULIHKAN saja (restore) daripada blokir user.
+      // Ini UX yang jauh lebih baik: user tidak perlu tahu ada "data hantu" di DB.
+      if (existingCategory.deletedAt !== null) {
+        return categoryRepository.restore(existingCategory.id);
+      }
+
+      // Kalau masih aktif, baru tolak dengan pesan jelas.
+      throw new AppError(`Nama kategori "${data.name}" sudah ada di cabang ini. Gunakan nama lain.`, 409);
     }
 
     return categoryRepository.create(data);
