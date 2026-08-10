@@ -1,27 +1,17 @@
 import nodemailer from 'nodemailer';
+import { MailtrapTransport } from 'mailtrap';
 import { env } from '@config/env';
 
-// Konfigurasi SMTP dipisahkan ke variabel tersendiri.
-// Mailtrap sandbox dipakai untuk testing — email tertangkap di virtual inbox Mailtrap.
-// Port 2525 dipakai karena Railway tidak memblokir port ini
-// (Railway hanya memblokir 465/587 yang merupakan port SMTP standar).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const smtpConfig: any = {
-  host: env.SMTP_HOST,
-  port: env.SMTP_PORT,      // 2525 — port alternatif Mailtrap
-  secure: false,
-  family: 4,                // Paksa IPv4 — Railway tidak support koneksi keluar via IPv6
-  connectionTimeout: 8000,  // Gagal cepat dalam 8 detik (default nodemailer = 2 menit)
-  greetingTimeout: 8000,    // Timeout saat handshake SMTP
-  socketTimeout: 8000,      // Timeout per operasi socket
-  auth: {
-    user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
-  },
-};
-
-// Buat transporter Nodemailer sekali — pakai untuk semua pengiriman email
-const transporter = nodemailer.createTransport(smtpConfig);
+// Mailtrap SDK transport — pakai HTTP API (port 443) bukan SMTP.
+// Ini solusi untuk Railway yang memblokir semua port SMTP (25/465/587/2525).
+// Email tertangkap di virtual inbox Mailtrap untuk testing.
+const transport = nodemailer.createTransport(
+  MailtrapTransport({
+    token: env.MAILTRAP_API_TOKEN,
+    sandbox: true,
+    testInboxId: env.MAILTRAP_INBOX_ID,
+  }),
+);
 
 /**
  * Kirim email verifikasi akun ke user yang baru daftar
@@ -36,8 +26,11 @@ export async function sendVerificationEmail(
 ): Promise<void> {
   const verifyUrl = `${env.APP_URL}/api/v1/auth/verify-email?token=${token}`;
 
-  await transporter.sendMail({
-    from: `"Mitbiz POS" <${env.EMAIL_FROM}>`,
+  await transport.sendMail({
+    from: {
+      address: env.EMAIL_FROM,
+      name: 'Mitbiz POS',
+    },
     to: toEmail,
     subject: 'Verifikasi Akun Mitbiz POS Anda',
     html: `
