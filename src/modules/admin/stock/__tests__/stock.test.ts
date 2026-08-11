@@ -19,6 +19,7 @@ describe('Stock Module', () => {
   let adminToken: string;
   let kasirToken: string;
   let outletId: string;
+  let businessId: string;
   let categoryId: string;
   let productId1: string;
   let productId2: string;
@@ -46,6 +47,7 @@ describe('Stock Module', () => {
       },
     });
     outletId = outlet.id;
+    businessId = business.id;
 
     // 2. Setup Role
     const staffRole = await prisma.role.create({
@@ -97,11 +99,11 @@ describe('Stock Module', () => {
     
     const p1 = await prisma.product.create({
       data: {
-        outletId: outletId,
+        businessId: businessId,
         name: 'Nasi Goreng Test',
         sku: 'NS-001',
         price: 20000,
-        stock: {
+        stocks: {
           create: {
             outletId: outletId,
             quantity: 0,
@@ -114,11 +116,11 @@ describe('Stock Module', () => {
 
     const p2 = await prisma.product.create({
       data: {
-        outletId: outletId,
+        businessId: businessId,
         name: 'Es Teh Test',
         sku: 'ES-001',
         price: 5000,
-        stock: {
+        stocks: {
           create: {
             outletId: outletId,
             quantity: 10,

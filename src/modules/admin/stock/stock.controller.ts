@@ -24,8 +24,15 @@ export class StockController {
       const userOutletId = req.user!.outletId || undefined;
       const businessId = req.user!.businessId || undefined;
       const { productId } = req.params;
+      // Admin lintas cabang harus kirim outletId via query param
+      const queryOutletId = req.query.outletId as string | undefined;
 
-      const stockDetail = await stockService.getStockDetail(userOutletId as string | undefined, businessId as string | undefined, productId as string);
+      const stockDetail = await stockService.getStockDetail(
+        userOutletId as string | undefined,
+        businessId as string | undefined,
+        productId as string,
+        queryOutletId
+      );
       return sendSuccess(res, stockDetail, 'Berhasil mengambil detail stok');
     } catch (error) {
       next(error);
@@ -37,9 +44,16 @@ export class StockController {
       const userOutletId = req.user!.outletId || undefined;
       const businessId = req.user!.businessId || undefined;
       const userId = req.user!.userId;
+
+      // outletId wajib ada di body (dipilih dari dropdown Cabang di UI)
       const data = adjustStockSchema.parse(req.body);
 
-      const result = await stockService.adjustStock(userOutletId as string | undefined, businessId as string | undefined, userId as string, data);
+      const result = await stockService.adjustStock(
+        userOutletId as string | undefined,
+        businessId as string | undefined,
+        userId as string,
+        data
+      );
       return sendSuccess(res, result, 'Berhasil melakukan penyesuaian stok', 201);
     } catch (error) {
       console.error(error);

@@ -17,17 +17,28 @@ export class StockService {
   }
 
   /**
-   * Mengambil detail satu stok beserta riwayat 10 penyesuaian terakhirnya.
+   * Mengambil detail satu stok berdasar productId + outletId.
+   * - Kasir/Staff terikat cabang: outletId dari token
+   * - Admin lintas cabang: outletId dari query param
    */
-  async getStockDetail(userOutletId: string | undefined, businessId: string | undefined, productId: string) {
-    const stock = await stockRepository.findByProductId(productId);
-    if (!stock) {
-      throw new AppError('Data stok untuk produk ini tidak ditemukan', 404);
+  async getStockDetail(
+    userOutletId: string | undefined,
+    businessId: string | undefined,
+    productId: string,
+    queryOutletId?: string
+  ) {
+    // Tentukan outletId yang dipakai
+    const targetOutletId = userOutletId || queryOutletId;
+    if (!targetOutletId) {
+      throw new AppError('outletId wajib disertakan (query param) untuk Admin lintas cabang', 400);
     }
 
-    if (userOutletId && stock.outletId !== userOutletId) {
-      throw new AppError('Akses ditolak: Produk ini bukan milik outlet Anda', 403);
+    const stock = await stockRepository.findByProductAndOutlet(productId, targetOutletId);
+    if (!stock) {
+      throw new AppError('Data stok untuk produk ini di cabang yang dipilih tidak ditemukan', 404);
     }
+
+    // Validasi kepemilikan bisnis
     if (businessId && stock.outlet.businessId !== businessId) {
       throw new AppError('Akses ditolak: Produk ini bukan milik bisnis Anda', 403);
     }
@@ -38,26 +49,36 @@ export class StockService {
 
   /**
    * Melakukan penyesuaian stok (IN, OUT, CORRECTION).
+   * - outletId dari body request (Admin pilih cabang)
+   * - Jika user adalah Kasir/Staff terikat cabang, validasi bahwa outletId body = outletId user
    */
-  async adjustStock(userOutletId: string | undefined, businessId: string | undefined, userId: string, data: AdjustStockDto) {
-    const { productId, type, quantity, notes } = data;
+  async adjustStock(
+    userOutletId: string | undefined,
+    businessId: string | undefined,
+    userId: string,
+    data: AdjustStockDto
+  ) {
+    const { outletId, productId, type, quantity, notes } = data;
 
-    // 1. Cek stok produk
-    const stock = await stockRepository.findByProductId(productId);
+    // Jika user terikat cabang (Kasir/Staff), pastikan mereka tidak adjust cabang lain
+    if (userOutletId && userOutletId !== outletId) {
+      throw new AppError('Akses ditolak: Anda hanya bisa melakukan penyesuaian stok di cabang Anda sendiri', 403);
+    }
+
+    // 1. Cek stok produk di cabang yang dipilih
+    const stock = await stockRepository.findByProductAndOutlet(productId, outletId);
     if (!stock) {
-      throw new AppError('Produk tidak ditemukan', 404);
+      throw new AppError('Produk tidak ditemukan di cabang ini atau stok belum diinisialisasi', 404);
     }
 
-    if (userOutletId && stock.outletId !== userOutletId) {
-      throw new AppError('Akses ditolak: Produk ini bukan milik outlet Anda', 403);
-    }
+    // 2. Validasi kepemilikan bisnis
     if (businessId && stock.outlet.businessId !== businessId) {
       throw new AppError('Akses ditolak: Produk ini bukan milik bisnis Anda', 403);
     }
 
-    // 2. Tentukan newQuantity berdasar tipe
+    // 3. Tentukan newQuantity berdasar tipe
     let newQuantity = stock.quantity;
-    
+
     if (type === 'OUT') {
       if (stock.quantity < quantity) {
         throw new AppError(`Stok tidak mencukupi. Stok saat ini: ${stock.quantity}, yang akan dikurangi: ${quantity}`, 400);
@@ -69,12 +90,12 @@ export class StockService {
       newQuantity = quantity;
     }
 
-    // 3. Simpan ke database via transaksi
+    // 4. Simpan ke database via transaksi
     const adjustmentQuantity = type === 'CORRECTION' ? Math.abs(newQuantity - stock.quantity) : quantity;
 
     const result = await stockRepository.adjustStockTransaction(
       stock.id,
-      stock.outletId,
+      outletId,
       productId,
       newQuantity,
       adjustmentQuantity,

@@ -3,12 +3,11 @@ import { prisma } from '@/prisma/client';
 
 export class StockRepository {
   /**
-   * Mengambil daftar stok untuk suatu outlet.
-   * Mendukung pencarian berdasar nama/sku dan filter stok menipis.
+   * Mengambil daftar stok untuk suatu outlet atau semua outlet dalam satu bisnis.
    */
   async findAll(outletId: string | undefined, businessId: string | undefined, search?: string, lowStockOnly?: boolean) {
     const where: Prisma.StockWhereInput = {};
-    
+
     if (outletId) {
       where.outletId = outletId;
     } else if (businessId) {
@@ -53,12 +52,14 @@ export class StockRepository {
   }
 
   /**
-   * Mencari data stok berdasar ID produk secara global (karena productId unik)
+   * Mencari data stok berdasar ID produk DAN ID outlet.
+   * Karena productId sekarang tidak lagi unique secara global (1 produk bisa punya stok di banyak cabang),
+   * kita harus kombinasikan productId + outletId untuk mendapatkan 1 record yang spesifik.
    */
-  async findByProductId(productId: string) {
+  async findByProductAndOutlet(productId: string, outletId: string) {
     return prisma.stock.findUnique({
       where: {
-        productId,
+        productId_outletId: { productId, outletId },
       },
       include: {
         product: {
@@ -67,11 +68,12 @@ export class StockRepository {
             sku: true,
             price: true,
             status: true,
+            businessId: true,
           },
         },
         outlet: {
-          select: { businessId: true },
-        }
+          select: { businessId: true, name: true },
+        },
       },
     });
   }
