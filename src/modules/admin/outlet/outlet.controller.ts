@@ -14,6 +14,7 @@ export class OutletController {
       const result = await outletService.getAllOutlets({
         requesterRole: req.user!.role,
         requesterBusinessId: req.user!.businessId,
+        requesterOutletId: req.user!.outletId,
         businessId: businessId as string | undefined,
         search: search as string | undefined,
         page: page ? parseInt(page as string, 10) : 1,
@@ -37,6 +38,7 @@ export class OutletController {
         id as string,
         req.user!.role,
         req.user!.businessId,
+        req.user!.outletId,
       );
 
       sendSuccess(res, outlet, 'Berhasil mendapatkan detail outlet');
@@ -62,6 +64,7 @@ export class OutletController {
         data,
         req.user!.role,
         req.user!.businessId,
+        req.user!.outletId,
       );
       sendSuccess(res, outlet, 'Outlet berhasil ditambahkan', 201);
     } catch (error) {
@@ -83,6 +86,7 @@ export class OutletController {
         data,
         req.user!.role,
         req.user!.businessId,
+        req.user!.outletId,
       );
 
       sendSuccess(res, outlet, 'Outlet berhasil diperbarui');
@@ -102,6 +106,7 @@ export class OutletController {
         id as string,
         req.user!.role,
         req.user!.businessId,
+        req.user!.outletId,
       );
       sendSuccess(res, null, result.message);
     } catch (error) {

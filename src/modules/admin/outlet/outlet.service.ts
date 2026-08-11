@@ -12,6 +12,7 @@ export class OutletService {
   async getAllOutlets({
     requesterRole,
     requesterBusinessId,
+    requesterOutletId,
     businessId,
     search,
     page = 1,
@@ -19,26 +20,31 @@ export class OutletService {
   }: {
     requesterRole: string;
     requesterBusinessId?: string | null;
+    requesterOutletId?: string | null;
     businessId?: string;
     search?: string;
     page?: number;
     limit?: number;
   }) {
-    // Tidak ada filter bawaan — SUPER_ADMIN bisa lihat semua
     let resolvedBusinessId = businessId;
+    let resolvedOutletId = undefined; // Default tidak difilter berdasarkan outlet
 
     if (requesterRole !== 'SUPER_ADMIN') {
       if (!requesterBusinessId) {
         throw new AppError('Anda tidak memiliki akses bisnis', 403);
       }
-      // Paksa pakai businessId dari token — tidak bisa lihat outlet bisnis lain
-      // Tidak ada restriksi outletId: STAFF yang sudah punya MENU_CABANG
-      // mendapat akses yang sama dengan ADMIN (semua outlet dalam bisnisnya)
+      // Paksa pakai businessId dari token
       resolvedBusinessId = requesterBusinessId;
+
+      // Jika STAFF dan terikat ke satu cabang (bukan "Semua Cabang")
+      if (requesterRole === 'STAFF' && requesterOutletId) {
+        resolvedOutletId = requesterOutletId;
+      }
     }
 
     const { outlets, total } = await outletRepository.findAll({
       businessId: resolvedBusinessId,
+      outletId: resolvedOutletId,
       search,
       page,
       limit,
@@ -60,6 +66,7 @@ export class OutletService {
     id: string,
     requesterRole: string,
     requesterBusinessId?: string | null,
+    requesterOutletId?: string | null,
   ) {
     const outlet = await outletRepository.findById(id);
 
@@ -67,12 +74,15 @@ export class OutletService {
       throw new AppError('Outlet tidak ditemukan', 404);
     }
 
-    // Logika 3 kasta
     if (requesterRole !== 'SUPER_ADMIN') {
-      // ADMIN & STAFF (berizin MENU_CABANG): hanya boleh akses outlet dalam bisnisnya
-      // Tidak ada restriksi outletId — MENU_CABANG memberi akses penuh dalam bisnis
+      // ADMIN & STAFF: harus dalam bisnis yang sama
       if (outlet.businessId !== requesterBusinessId) {
         throw new AppError('Anda tidak memiliki akses ke outlet ini', 403);
+      }
+
+      // Khusus STAFF yang terikat 1 cabang
+      if (requesterRole === 'STAFF' && requesterOutletId && outlet.id !== requesterOutletId) {
+        throw new AppError('Anda hanya dapat mengakses profil cabang Anda sendiri', 403);
       }
     }
 
@@ -88,7 +98,11 @@ export class OutletService {
     data: CreateOutletType,
     requesterRole: string,
     requesterBusinessId?: string | null,
+    requesterOutletId?: string | null,
   ) {
+    if (requesterRole === 'STAFF' && requesterOutletId) {
+      throw new AppError('Staff cabang tidak diizinkan membuat cabang baru. Hubungi Admin.', 403);
+    }
     let resolvedBusinessId = data.businessId;
 
     if (requesterRole !== 'SUPER_ADMIN') {
@@ -125,6 +139,7 @@ export class OutletService {
     data: UpdateOutletType,
     requesterRole: string,
     requesterBusinessId?: string | null,
+    requesterOutletId?: string | null,
   ) {
     const outlet = await outletRepository.findById(id);
 
@@ -132,12 +147,14 @@ export class OutletService {
       throw new AppError('Outlet tidak ditemukan', 404);
     }
 
-    // Logika 3 kasta
     if (requesterRole !== 'SUPER_ADMIN') {
-      // ADMIN & STAFF (berizin MENU_CABANG): hanya boleh update outlet dalam bisnisnya
-      // Tidak ada restriksi outletId — MENU_CABANG memberi akses penuh dalam bisnis
       if (outlet.businessId !== requesterBusinessId) {
         throw new AppError('Anda tidak memiliki akses untuk mengubah outlet ini', 403);
+      }
+      
+      // Khusus STAFF yang terikat 1 cabang
+      if (requesterRole === 'STAFF' && requesterOutletId && outlet.id !== requesterOutletId) {
+        throw new AppError('Anda hanya dapat mengubah data cabang Anda sendiri', 403);
       }
     }
 
@@ -148,7 +165,15 @@ export class OutletService {
    * Hapus outlet (soft delete)
    * ADMIN & STAFF (berizin MENU_CABANG): hanya boleh hapus outlet milik bisnisnya sendiri
    */
-  async deleteOutlet(id: string, requesterRole: string, requesterBusinessId?: string | null) {
+  async deleteOutlet(
+    id: string, 
+    requesterRole: string, 
+    requesterBusinessId?: string | null,
+    requesterOutletId?: string | null,
+  ) {
+    if (requesterRole === 'STAFF' && requesterOutletId) {
+      throw new AppError('Staff cabang tidak diizinkan menghapus cabang.', 403);
+    }
     const outlet = await outletRepository.findById(id);
 
     if (!outlet) {

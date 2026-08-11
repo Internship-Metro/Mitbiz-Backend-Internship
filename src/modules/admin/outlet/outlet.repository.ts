@@ -45,7 +45,7 @@ export class OutletRepository {
           _count: {
             select: {
               users: true,    // Jumlah user di outlet ini
-              products: true, // Jumlah produk di outlet ini
+              stocks: true,   // Jumlah stok/produk di outlet ini
             },
           },
         },
@@ -67,7 +67,7 @@ export class OutletRepository {
           select: { id: true, name: true, businessCode: true },
         },
         _count: {
-          select: { users: true, products: true },
+          select: { users: true, stocks: true },
         },
       },
     });
