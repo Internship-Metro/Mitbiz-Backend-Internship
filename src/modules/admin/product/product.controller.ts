@@ -10,10 +10,10 @@ export class ProductController {
 
   getAllProducts = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const outletId = req.user!.outletId!;
+      const businessId = req.user!.businessId!;
       const { page, limit, search, categoryId, status } = req.query;
 
-      const result = await this.service.getAllProducts(outletId, {
+      const result = await this.service.getAllProducts(businessId, {
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
         search: search as string,
@@ -35,10 +35,10 @@ export class ProductController {
 
   getProductById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const outletId = req.user!.outletId!;
+      const businessId = req.user!.businessId!;
       const id = req.params.id as string;
 
-      const product = await this.service.getProductById(id, outletId);
+      const product = await this.service.getProductById(id, businessId);
 
       sendSuccess(res, product, 'Berhasil mengambil detail produk');
     } catch (error) {
@@ -48,13 +48,13 @@ export class ProductController {
 
   createProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const outletId = req.user!.outletId!;
-      
-      // Parse with Zod. Because form-data sends everything as string, 
+      const businessId = req.user!.businessId!;
+
+      // Parse with Zod. Because form-data sends everything as string,
       // Zod's coerce.number() inside the schema will handle price and discount conversion.
       const validatedData = createProductSchema.parse(req.body);
 
-      const product = await this.service.createProduct(outletId, validatedData, req.file);
+      const product = await this.service.createProduct(businessId, validatedData, req.file);
 
       sendSuccess(res, product, 'Berhasil membuat produk', 201);
     } catch (error) {
@@ -64,12 +64,12 @@ export class ProductController {
 
   updateProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const outletId = req.user!.outletId!;
+      const businessId = req.user!.businessId!;
       const id = req.params.id as string;
 
       const validatedData = updateProductSchema.parse(req.body);
 
-      const product = await this.service.updateProduct(id, outletId, validatedData, req.file);
+      const product = await this.service.updateProduct(id, businessId, validatedData, req.file);
 
       sendSuccess(res, product, 'Berhasil memperbarui produk');
     } catch (error) {
@@ -79,10 +79,10 @@ export class ProductController {
 
   deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const outletId = req.user!.outletId!;
+      const businessId = req.user!.businessId!;
       const id = req.params.id as string;
 
-      await this.service.deleteProduct(id, outletId);
+      await this.service.deleteProduct(id, businessId);
 
       sendSuccess(res, null, 'Berhasil menghapus produk');
     } catch (error) {

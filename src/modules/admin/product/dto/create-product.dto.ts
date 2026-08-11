@@ -18,6 +18,10 @@ export const createProductSchema = z.object({
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Harga tidak boleh negatif' });
       return z.NEVER;
     }
+    if (num > 2000000000) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Harga maksimal adalah Rp 2.000.000.000' });
+      return z.NEVER;
+    }
     return num;
   }),
   discount: z.preprocess(
@@ -29,7 +33,10 @@ export const createProductSchema = z.object({
       .default(0)
   ),
   categoryId: z.string().cuid('Kategori wajib dipilih (Format ID tidak valid)'),
-  status: z.nativeEnum(ProductStatus).default(ProductStatus.ACTIVE).optional(),
+  status: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.nativeEnum(ProductStatus).default(ProductStatus.ACTIVE).optional()
+  ),
 });
 
 export type CreateProductDto = z.infer<typeof createProductSchema>;

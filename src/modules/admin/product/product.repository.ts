@@ -3,7 +3,7 @@ import { prisma } from '@/prisma/client';
 
 export class ProductRepository {
   async findAll(
-    outletId: string,
+    businessId: string,
     params: {
       page: number;
       limit: number;
@@ -16,7 +16,7 @@ export class ProductRepository {
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = {
-      outletId,
+      businessId,
       deletedAt: null,
       ...(search && {
         name: { contains: search, mode: 'insensitive' },
@@ -37,8 +37,9 @@ export class ProductRepository {
               name: true,
             },
           },
-          stock: {
+          stocks: {
             select: {
+              outletId: true,
               quantity: true,
             },
           },
@@ -51,25 +52,25 @@ export class ProductRepository {
     return { data, total, page, limit };
   }
 
-  async findById(id: string, outletId: string) {
+  async findById(id: string, businessId: string) {
     return prisma.product.findFirst({
       where: {
         id,
-        outletId,
+        businessId,
         deletedAt: null,
       },
       include: {
         category: true,
-        stock: true,
+        stocks: true,
       },
     });
   }
 
-  async findBySku(sku: string, outletId: string) {
+  async findBySku(sku: string, businessId: string) {
     return prisma.product.findFirst({
       where: {
         sku,
-        outletId,
+        businessId,
         deletedAt: null,
       },
     });

@@ -19,6 +19,7 @@ describe('Product Module', () => {
   let adminToken: string;
   let kasirToken: string;
   let outletId: string;
+  let businessId: string;
   let categoryId: string;
   let productId: string;
   let staffRoleId: string;
@@ -35,6 +36,7 @@ describe('Product Module', () => {
         status: 'ACTIVE',
       },
     });
+    businessId = business.id;
 
     const outlet = await prisma.outlet.create({
       data: {
@@ -46,10 +48,10 @@ describe('Product Module', () => {
     });
     outletId = outlet.id;
 
-    // 2. Setup Category
+    // 2. Setup Category (business-level)
     const category = await prisma.category.create({
       data: {
-        outletId: outlet.id,
+        businessId: business.id,
         name: 'Makanan Test',
       },
     });
@@ -67,7 +69,7 @@ describe('Product Module', () => {
 
     // 4. Setup Users
     const hashedPassword = await bcrypt.hash('Password123', 10);
-    
+
     // Admin
     await prisma.user.create({
       data: {
@@ -118,20 +120,20 @@ describe('Product Module', () => {
         .field('sku', 'MIE-001')
         .field('price', '15000')
         .field('categoryId', categoryId);
-      
-      expect(res.status).toBe(201);
+
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.name).toBe('Mie Ayam Test');
       expect(res.body.data.sku).toBe('MIE-001');
       expect(res.body.data.price).toBe(15000);
-      
+
       productId = res.body.data.id;
 
-      // Verifikasi stock terbuat
-      const stock = await prisma.stock.findFirst({ where: { productId } });
-      expect(stock).not.toBeNull();
-      expect(stock?.quantity).toBe(0);
+      // Verifikasi stock terbuat otomatis untuk setiap cabang
+      const stocks = await prisma.stock.findMany({ where: { productId } });
+      expect(stocks.length).toBeGreaterThanOrEqual(1);
+      expect(stocks[0].quantity).toBe(0);
+      expect(stocks[0].outletId).toBe(outletId);
     });
 
     it('Harusnya Admin TIDAK BISA membuat produk dengan SKU yang sama (400)', async () => {
@@ -142,7 +144,7 @@ describe('Product Module', () => {
         .field('sku', 'MIE-001') // Sama dengan di atas
         .field('price', '12000')
         .field('categoryId', categoryId);
-      
+
       expect(res.status).toBe(400);
       expect(res.body.message).toMatch(/SKU sudah digunakan/i);
     });
@@ -154,7 +156,7 @@ describe('Product Module', () => {
         .field('name', 'Es Teh')
         .field('sku', 'ES-001')
         .field('price', '5000');
-      
+
       expect(res.status).toBe(403);
     });
   });
@@ -164,7 +166,7 @@ describe('Product Module', () => {
       const res = await request(app)
         .get('/api/v1/products')
         .set('Cookie', kasirToken);
-      
+
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.length).toBeGreaterThanOrEqual(1);
@@ -174,7 +176,7 @@ describe('Product Module', () => {
       const res = await request(app)
         .get(`/api/v1/products/${productId}`)
         .set('Cookie', adminToken);
-      
+
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.id).toBe(productId);
@@ -184,10 +186,10 @@ describe('Product Module', () => {
   describe('PUT /api/v1/products/:id', () => {
     it('Harusnya Admin bisa mengubah harga produk (200)', async () => {
       const res = await request(app)
-        .put(`/api/v1/products/${productId}`)
+        .patch(`/api/v1/products/${productId}`)
         .set('Cookie', adminToken)
         .field('price', '17000');
-      
+
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.price).toBe(17000);
@@ -195,10 +197,10 @@ describe('Product Module', () => {
 
     it('Harusnya Staff TIDAK BISA mengubah produk (403)', async () => {
       const res = await request(app)
-        .put(`/api/v1/products/${productId}`)
+        .patch(`/api/v1/products/${productId}`)
         .set('Cookie', kasirToken)
         .field('name', 'Diubah Kasir');
-      
+
       expect(res.status).toBe(403);
     });
   });
@@ -208,7 +210,7 @@ describe('Product Module', () => {
       const res = await request(app)
         .delete(`/api/v1/products/${productId}`)
         .set('Cookie', kasirToken);
-      
+
       expect(res.status).toBe(403);
     });
 
@@ -216,10 +218,10 @@ describe('Product Module', () => {
       const res = await request(app)
         .delete(`/api/v1/products/${productId}`)
         .set('Cookie', adminToken);
-      
+
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      
+
       // Verifikasi di database
       const deletedProd = await prisma.product.findUnique({ where: { id: productId }});
       expect(deletedProd?.deletedAt).not.toBeNull();
