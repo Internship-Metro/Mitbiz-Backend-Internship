@@ -13,5 +13,7 @@ reportRouter.use(requirePermissions([MenuPermission.MENU_REPORT]));
 // Rute export harus ditaruh sebelum route dengan parameter (jika ada)
 reportRouter.get('/sales/export', reportController.exportSales);
 reportRouter.get('/sales', reportController.getSales);
+reportRouter.get('/products', reportController.getTopProducts);
+reportRouter.get('/stocks', reportController.getStocks);
 
 export default reportRouter;

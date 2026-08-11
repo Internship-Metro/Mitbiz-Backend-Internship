@@ -27,7 +27,7 @@ export const reportRepository = {
     });
   },
 
-  async getGlobalSalesData(startDate: Date, endDate: Date, branchId?: string) {
+  async getGlobalSalesData(startDate: Date, endDate: Date, branchId?: string, businessId?: string) {
     const whereClause: Prisma.TransactionWhereInput = {
       status: 'COMPLETED',
       createdAt: {
@@ -35,6 +35,7 @@ export const reportRepository = {
         lte: endDate,
       },
       ...(branchId ? { outletId: branchId } : {}),
+      ...(businessId ? { outlet: { businessId: businessId } } : {}),
     };
 
     return prisma.transaction.findMany({
@@ -46,6 +47,55 @@ export const reportRepository = {
         items: true,
       },
       orderBy: { createdAt: 'desc' },
+    });
+  },
+
+  async getTopProductsData(startDate: Date, endDate: Date, branchId?: string, businessId?: string) {
+    const whereClause: Prisma.TransactionItemWhereInput = {
+      transaction: {
+        status: 'COMPLETED',
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+        ...(branchId ? { outletId: branchId } : {}),
+        ...(businessId ? { outlet: { businessId: businessId } } : {}),
+      }
+    };
+
+    const topProducts = await prisma.transactionItem.groupBy({
+      by: ['productSku', 'productName'],
+      where: whereClause,
+      _sum: {
+        quantity: true,
+        subtotal: true,
+      },
+      orderBy: {
+        _sum: {
+          quantity: 'desc',
+        },
+      },
+    });
+
+    return topProducts;
+  },
+
+  async getStockReportData(branchId?: string, businessId?: string) {
+    const whereClause: Prisma.StockWhereInput = {
+      ...(branchId ? { outletId: branchId } : {}),
+      ...(businessId ? { product: { businessId: businessId } } : {}),
+    };
+
+    return prisma.stock.findMany({
+      where: whereClause,
+      include: {
+        product: { select: { name: true, sku: true, category: { select: { name: true } } } },
+        outlet: { select: { name: true } },
+      },
+      orderBy: [
+        { outlet: { name: 'asc' } },
+        { quantity: 'asc' }
+      ]
     });
   }
 };

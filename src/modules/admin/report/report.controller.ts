@@ -10,13 +10,14 @@ export const reportController = {
       const parsedQuery = reportFilterSchema.safeParse(req.query);
 
       if (!parsedQuery.success) {
-        return sendError(res, (parsedQuery.error as any)?.errors[0]?.message || 'Invalid query', 400);
+        return sendError(res, (parsedQuery.error as any)?.errors?.[0]?.message || 'Invalid query', 400);
       }
 
       const filters = {
         startDate: new Date(parsedQuery.data.startDate),
         endDate: new Date(parsedQuery.data.endDate),
         branchId: parsedQuery.data.branchId,
+        businessId: parsedQuery.data.businessId,
       };
 
       // Ensure endDate covers the whole day by setting to 23:59:59
@@ -35,7 +36,7 @@ export const reportController = {
       const parsedQuery = reportFilterSchema.safeParse(req.query);
 
       if (!parsedQuery.success) {
-        return sendError(res, (parsedQuery.error as any)?.errors[0]?.message || 'Invalid query', 400);
+        return sendError(res, (parsedQuery.error as any)?.errors?.[0]?.message || 'Invalid query', 400);
       }
 
       const format = parsedQuery.data.format || 'excel';
@@ -44,6 +45,7 @@ export const reportController = {
         startDate: new Date(parsedQuery.data.startDate),
         endDate: new Date(parsedQuery.data.endDate),
         branchId: parsedQuery.data.branchId,
+        businessId: parsedQuery.data.businessId,
       };
       filters.endDate.setHours(23, 59, 59, 999);
 
@@ -64,6 +66,52 @@ export const reportController = {
       }
     } catch (error: any) {
       return sendError(res, error.message || 'Terjadi kesalahan saat export', 500);
+    }
+  },
+
+  async getTopProducts(req: Request, res: Response) {
+    try {
+      const user = req.user as any;
+      const parsedQuery = reportFilterSchema.safeParse(req.query);
+
+      if (!parsedQuery.success) {
+        return sendError(res, (parsedQuery.error as any)?.errors?.[0]?.message || 'Invalid query', 400);
+      }
+
+      const filters = {
+        startDate: new Date(parsedQuery.data.startDate),
+        endDate: new Date(parsedQuery.data.endDate),
+        branchId: parsedQuery.data.branchId,
+        businessId: parsedQuery.data.businessId,
+      };
+      filters.endDate.setHours(23, 59, 59, 999);
+
+      const data = await reportService.getTopProducts(user, filters);
+      return sendSuccess(res, data, 'Berhasil mengambil laporan produk terlaris', 200);
+    } catch (error: any) {
+      return sendError(res, error.message || 'Terjadi kesalahan', 500);
+    }
+  },
+
+  async getStocks(req: Request, res: Response) {
+    try {
+      const user = req.user as any;
+      // We still parse the query to extract branchId, but dates are ignored for stocks
+      const parsedQuery = reportFilterSchema.safeParse(req.query);
+
+      if (!parsedQuery.success) {
+        return sendError(res, (parsedQuery.error as any)?.errors?.[0]?.message || 'Invalid query', 400);
+      }
+
+      const filters = {
+        branchId: parsedQuery.data.branchId,
+        businessId: parsedQuery.data.businessId,
+      };
+
+      const data = await reportService.getStocks(user, filters);
+      return sendSuccess(res, data, 'Berhasil mengambil laporan stok', 200);
+    } catch (error: any) {
+      return sendError(res, error.message || 'Terjadi kesalahan', 500);
     }
   }
 };

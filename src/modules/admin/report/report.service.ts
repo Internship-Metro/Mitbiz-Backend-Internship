@@ -3,12 +3,32 @@ import ExcelJS from 'exceljs';
 const PdfPrinter = require('pdfmake');
 
 export const reportService = {
-  async getSalesData(user: any, filters: { startDate: Date; endDate: Date; branchId?: string }) {
+  async getSalesData(user: any, filters: { startDate: Date; endDate: Date; branchId?: string; businessId?: string }) {
     if (user.role === 'SUPER_ADMIN') {
-      return reportRepository.getGlobalSalesData(filters.startDate, filters.endDate, filters.branchId);
+      return reportRepository.getGlobalSalesData(filters.startDate, filters.endDate, filters.branchId, filters.businessId);
     }
     if (user.businessId) {
       return reportRepository.getSalesData(user.businessId, filters.startDate, filters.endDate, filters.branchId);
+    }
+    throw new Error('User tidak memiliki akses ke laporan bisnis');
+  },
+
+  async getTopProducts(user: any, filters: { startDate: Date; endDate: Date; branchId?: string; businessId?: string }) {
+    if (user.role === 'SUPER_ADMIN') {
+      return reportRepository.getTopProductsData(filters.startDate, filters.endDate, filters.branchId, filters.businessId);
+    }
+    if (user.businessId) {
+      return reportRepository.getTopProductsData(filters.startDate, filters.endDate, filters.branchId, user.businessId);
+    }
+    throw new Error('User tidak memiliki akses ke laporan bisnis');
+  },
+
+  async getStocks(user: any, filters: { branchId?: string; businessId?: string }) {
+    if (user.role === 'SUPER_ADMIN') {
+      return reportRepository.getStockReportData(filters.branchId, filters.businessId);
+    }
+    if (user.businessId) {
+      return reportRepository.getStockReportData(filters.branchId, user.businessId);
     }
     throw new Error('User tidak memiliki akses ke laporan bisnis');
   },
@@ -50,7 +70,7 @@ export const reportService = {
       const row = worksheet.addRow([
         trx.createdAt.toISOString().split('T')[0],
         trx.invoiceNumber,
-        trx.outlet?.name || '-',
+        trx.outlet?.business?.name ? `${trx.outlet.business.name} - ${trx.outlet.name}` : (trx.outlet?.name || '-'),
         trx.kasir?.name || '-',
         trx.paymentMethod?.name || trx.orderType,
         trx.subtotal,
@@ -114,7 +134,7 @@ export const reportService = {
       tableBody.push([
         trx.createdAt.toISOString().split('T')[0],
         trx.invoiceNumber,
-        trx.outlet?.name || '-',
+        trx.outlet?.business?.name ? `${trx.outlet.business.name} - ${trx.outlet.name}` : (trx.outlet?.name || '-'),
         trx.kasir?.name || '-',
         { text: `Rp ${trx.totalAmount.toLocaleString('id-ID')}`, alignment: 'right' }
       ]);

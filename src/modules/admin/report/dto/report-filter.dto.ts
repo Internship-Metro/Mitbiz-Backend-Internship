@@ -4,7 +4,7 @@ export const reportFilterSchema = z.object({
   startDate: z.string({ message: 'startDate is required' }).refine((date) => !isNaN(Date.parse(date)), { message: 'Invalid startDate format' }),
   endDate: z.string({ message: 'endDate is required' }).refine((date) => !isNaN(Date.parse(date)), { message: 'Invalid endDate format' }),
   branchId: z.string().optional(),
-  type: z.enum(['SALES', 'PRODUCT', 'STOCK']).optional(),
+  businessId: z.string().optional(),
   format: z.enum(['json', 'excel', 'pdf']).optional(),
 });
 
