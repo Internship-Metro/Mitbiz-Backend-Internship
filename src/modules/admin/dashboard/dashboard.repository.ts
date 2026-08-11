@@ -132,11 +132,11 @@ export const dashboardRepository = {
         }),
         // Produk Aktif
         prisma.product.count({
-          where: { outlet: { businessId }, status: 'ACTIVE', deletedAt: null },
+          where: { businessId, status: 'ACTIVE', deletedAt: null },
         }),
         // Total Produk
         prisma.product.count({
-          where: { outlet: { businessId }, deletedAt: null },
+          where: { businessId, deletedAt: null },
         }),
       ]);
 
