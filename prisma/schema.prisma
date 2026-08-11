@@ -141,6 +141,8 @@ model Business {
   status            BusinessStatus @default(ACTIVE) // Status bisnis: ACTIVE / INACTIVE / SUSPENDED
   isDiscountEnabled Boolean        @default(false) // Apakah admin mengizinkan diskon kasir
   maxDiscount       Int? // Batas maksimal diskon yang diizinkan (%)
+  maxDiscountNominal Int? // Maksimal Nominal Diskon (Rp)
+  discountProductIds String[] // Daftar ID produk yang diizinkan diskon
   isTaxEnabled      Boolean        @default(false) // Apakah transaksi dikenakan pajak
   taxPercentage     Float? // Persentase pajak global
   createdAt         DateTime       @default(now()) // Waktu pertama kali bisnis didaftarkan ke platform
@@ -150,6 +152,8 @@ model Business {
   // Relasi
   outlets        Outlet[] // Daftar semua outlet milik bisnis ini
   users          User[] // Daftar semua user (Admin, Kasir) yang terdaftar di bisnis ini
+  categories     Category[] // Daftar kategori produk yang berlaku untuk seluruh outlet di bisnis ini
+  products       Product[] // Daftar produk/menu yang berlaku untuk seluruh outlet di bisnis ini
   roles          Role[] // Daftar custom role yang dibuat oleh bisnis ini
   subscriptions  BusinessSubscription[] // Riwayat langganan paket yang pernah / sedang aktif
   paymentMethods PaymentMethod[] // Daftar metode pembayaran yang didefinisikan oleh bisnis ini
@@ -257,8 +261,6 @@ model Outlet {
   // Relasi
   business             Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
   users                User[] // Daftar user (Admin & Kasir) yang bertugas di outlet ini
-  products             Product[] // Daftar produk yang dijual di outlet ini
-  categories           Category[] // Daftar kategori produk milik outlet ini
   stocks               Stock[] // Data stok semua produk di outlet ini
   stockAdjustments     StockAdjustment[] // Riwayat semua penyesuaian stok di outlet ini
   transactions         Transaction[] // Semua transaksi penjualan yang terjadi di outlet ini
@@ -356,27 +358,28 @@ model Shift {
 /// Contoh: "Makanan", "Minuman", "Snack", "Alat Tulis".
 model Category {
   id        String    @id @default(cuid()) // ID unik kategori (format CUID, otomatis)
-  outletId  String // FK ke Outlet — kategori ini milik outlet mana
+  businessId String // FK ke Business — kategori ini milik bisnis mana secara global
   name      String // Nama kategori yang ditampilkan, e.g. "Makanan", "Minuman"
   createdAt DateTime  @default(now()) // Waktu kategori pertama kali dibuat
   updatedAt DateTime  @updatedAt // Waktu terakhir nama kategori diubah
   deletedAt DateTime? // Soft delete: diisi saat kategori dihapus, null = masih aktif
 
   // Relasi
-  outlet   Outlet    @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   products Product[] // Daftar produk yang masuk dalam kategori ini
 
-  @@unique([outletId, name]) // Kombinasi unik: nama kategori tidak boleh duplikat di outlet yang sama
-  @@index([outletId]) // Index pada outletId
+  @@unique([businessId, name]) // Kombinasi unik: nama kategori tidak boleh duplikat di bisnis yang sama
+  @@index([businessId]) // Index pada businessId
   @@map("category") // Nama tabel di database
 }
 
-/// Product = Produk atau menu item yang dijual di sebuah Outlet.
-/// Ditampilkan di halaman "Pilih Produk" pada aplikasi kasir.
+/// Product = Produk atau menu item yang dijual oleh sebuah Bisnis (level global per-bisnis).
+/// Admin cukup input produk sekali dan produk tersedia di semua cabang bisnis tersebut.
+/// Yang membedakan antar-cabang adalah STOK, bukan daftar produknya.
 /// Data produk mengikuti design Figma: Foto, Nama, SKU, Harga, Diskon, Kategori, Status.
 model Product {
   id         String        @id @default(cuid()) // ID unik produk (format CUID, otomatis)
-  outletId   String // FK ke Outlet — produk ini dijual di outlet mana
+  businessId String // FK ke Business — produk ini milik bisnis mana (level global per-bisnis)
   categoryId String? // FK ke Category — produk masuk kategori apa (opsional)
   name       String // Nama produk yang ditampilkan di menu, e.g. "Nasi Goreng Spesial"
   sku        String // Kode unik produk (Stock Keeping Unit), e.g. "FD-001"
@@ -389,14 +392,14 @@ model Product {
   deletedAt  DateTime? // Soft delete: diisi saat produk dihapus, null = masih ada
 
   // Relasi
-  outlet           Outlet            @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  business         Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
   category         Category?         @relation(fields: [categoryId], references: [id])
-  stock            Stock? // Data stok produk ini (relasi 1-to-1)
+  stocks           Stock[] // Stok produk ini per-cabang (relasi 1-to-many)
   stockAdjustments StockAdjustment[] // Riwayat semua perubahan stok produk ini
   transactionItems TransactionItem[] // Daftar item transaksi yang mengandung produk ini
 
-  @@unique([outletId, sku]) // Kombinasi unik: SKU tidak boleh duplikat di outlet yang sama
-  @@index([outletId]) // Index pada outletId
+  @@unique([businessId, sku]) // Kombinasi unik: SKU tidak boleh duplikat di bisnis yang sama
+  @@index([businessId]) // Index pada businessId
   @@index([categoryId]) // Index pada categoryId
   @@map("product") // Nama tabel di database
 }
@@ -406,11 +409,12 @@ model Product {
 // ============================================================
 
 /// Stock = data stok real-time untuk setiap produk di sebuah outlet.
-/// Relasi 1-to-1 dengan Product. Dikelola di halaman "Manajemen Stok".
+/// Relasi many-to-one dengan Product (1 produk bisa punya stok di banyak cabang).
+/// Unique: kombinasi productId + outletId (1 record stok per produk per cabang).
 model Stock {
   id          String   @id @default(cuid()) // ID unik record stok
   outletId    String // FK ke Outlet — stok ini ada di outlet mana
-  productId   String   @unique // FK ke Product — 1 produk hanya punya 1 record stok
+  productId   String // FK ke Product — produk mana yang punya stok ini
   quantity    Int      @default(0) // Jumlah stok yang tersedia saat ini (satuan unit)
   minQuantity Int      @default(0) // Batas minimum stok — jika quantity <= ini, tampilkan alert "Stok Menipis"
   createdAt   DateTime @default(now()) // Waktu record stok pertama kali dibuat (saat produk ditambahkan)
@@ -420,6 +424,7 @@ model Stock {
   outlet  Outlet  @relation(fields: [outletId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
+  @@unique([productId, outletId]) // Kombinasi unik: 1 record stok per produk per cabang
   @@index([outletId]) // Index pada outletId
   @@map("stock") // Nama tabel di database
 }
@@ -572,14 +577,14 @@ model TransactionItem {
 /// Hanya ada satu baris record (singleton pattern — id = "global").
 /// Field: Nama Aplikasi, Logo, Bahasa, Zona Waktu, Mata Uang, Format Tanggal.
 model SystemSetting {
-  id              String   @id @default("global") // Singleton: hanya ada satu baris, id selalu "global"
-  appName         String   @default("Mitbiz POS") // Nama aplikasi yang ditampilkan di seluruh UI
-  logoUrl         String? // URL logo sistem (upload file, max 10MB PNG/JPEG)
-  defaultLanguage String   @default("Indonesia") // Bahasa antarmuka default, e.g. "Indonesia", "English"
-  timezone        String   @default("Asia/Jakarta") // Zona waktu server, e.g. "Asia/Jakarta" (GMT+7)
-  currency        String   @default("IDR") // Kode mata uang default, e.g. "IDR" (Rupiah Indonesia)
-  dateFormat      String   @default("DD/MM/YYYY") // Format tanggal tampilan, e.g. "DD/MM/YYYY", "MM/DD/YYYY"
-  updatedAt       DateTime @updatedAt // Waktu terakhir pengaturan diubah (otomatis diperbarui)
+  id                String   @id @default("global") // Singleton: hanya ada satu baris, id selalu "global"
+  appName           String   @default("Mitbiz POS") // Nama aplikasi yang ditampilkan di seluruh UI
+  logoUrl           String? // URL logo sistem (upload file, max 10MB PNG/JPEG)
+  defaultLanguage   String   @default("Indonesia") // Bahasa antarmuka default
+  timezone          String   @default("GMT +7 Jakarta") // Zona waktu server
+  currency          String   @default("Rupiah (IDR)") // Kode mata uang default
+  dateFormat        String   @default("DD/MM/YYYY") // Format tanggal tampilan
+  updatedAt         DateTime @updatedAt // Waktu terakhir pengaturan diubah (otomatis diperbarui)
 
   @@map("system_setting") // Nama tabel di database — model "SystemSetting" → tabel "system_setting"
 }
