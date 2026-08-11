@@ -4,9 +4,12 @@ import { UpdateCategoryType } from './dto/update-category.dto';
 import { Prisma } from '@prisma/client';
 
 export class CategoryRepository {
-  async findAll(branchId: string, options?: { page?: number; limit?: number; search?: string }) {
+  async findAll(
+    businessId: string, 
+    options?: { page?: number; limit?: number; search?: string }
+  ) {
     const where: Prisma.CategoryWhereInput = {
-      outletId: branchId,
+      businessId,
       deletedAt: null, // Hanya ambil yang belum dihapus
     };
 
@@ -25,6 +28,11 @@ export class CategoryRepository {
           skip,
           take: options.limit,
           orderBy: { createdAt: 'desc' },
+          include: {
+            _count: {
+              select: { products: true }
+            }
+          }
         }),
         prisma.category.count({ where }),
       ]);
@@ -34,34 +42,39 @@ export class CategoryRepository {
     const data = await prisma.category.findMany({
       where,
       orderBy: { createdAt: 'desc' },
+      include: {
+        _count: {
+          select: { products: true }
+        }
+      }
     });
     return { data, total: data.length };
   }
 
-  async findById(id: string, branchId: string) {
+  async findById(id: string, businessId: string) {
     return prisma.category.findFirst({
-      where: { id, outletId: branchId, deletedAt: null },
+      where: { id, businessId, deletedAt: null },
     });
   }
 
-  async findByName(branchId: string, name: string) {
+  async findByName(businessId: string, name: string) {
     // Cek semua kategori termasuk yang sudah di-soft delete
     // Ini penting agar unique constraint DB tidak ter-trigger secara mengejutkan.
     // Kalau nama sudah ada (bahkan yang sudah dihapus), kita tolak dengan pesan ramah.
     return prisma.category.findFirst({
       where: { 
-        outletId: branchId, 
+        businessId, 
         name: { equals: name, mode: 'insensitive' },
         // TIDAK filter deletedAt: null — sengaja agar nama soft-deleted pun dicek
       },
     });
   }
 
-  async create(data: CreateCategoryType) {
+  async create(businessId: string, data: CreateCategoryType) {
     return prisma.category.create({
       data: {
         name: data.name,
-        outletId: data.branchId,
+        businessId,
       },
     });
   }

@@ -2,17 +2,20 @@ import { Request, Response, NextFunction } from 'express';
 import { categoryService } from './category.service';
 import { createCategorySchema } from './dto/create-category.dto';
 import { updateCategorySchema } from './dto/update-category.dto';
+import { AppError } from '@common/utils/app-error.util';
 
 export class CategoryController {
   async getCategories(req: Request, res: Response, next: NextFunction) {
     try {
-      // req.user pastinya ada karena rute ini dilindungi jwtAuthGuard
-      const branchId = req.user!.outletId!;
       const page = req.query.page ? parseInt(req.query.page as string) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined; 
       const search = req.query.search as string | undefined;
 
-      const result = await categoryService.getCategories(branchId, { page, limit, search });
+      const result = await categoryService.getCategories(
+        req.user!.role,
+        req.user!.businessId ?? null,
+        { page, limit, search }
+      );
       
       res.status(200).json({
         success: true,
@@ -27,8 +30,11 @@ export class CategoryController {
 
   async getCategoryById(req: Request, res: Response, next: NextFunction) {
     try {
-      const branchId = req.user!.outletId!;
-      const category = await categoryService.getCategoryById(req.params.id as string, branchId);
+      const category = await categoryService.getCategoryById(
+        req.params.id as string, 
+        req.user!.role,
+        req.user!.businessId ?? null,
+      );
       
       res.status(200).json({
         success: true,
@@ -42,11 +48,13 @@ export class CategoryController {
 
   async createCategory(req: Request, res: Response, next: NextFunction) {
     try {
-      const branchId = req.user!.outletId!;
-      // Gabungkan body dengan branchId otomatis agar lebih aman (tidak bisa di-inject via JSON payload)
-      const data = createCategorySchema.parse({ ...req.body, branchId });
+      const data = createCategorySchema.parse(req.body);
       
-      const category = await categoryService.createCategory(data);
+      const category = await categoryService.createCategory(
+        data,
+        req.user!.role,
+        req.user!.businessId ?? null,
+      );
       
       res.status(201).json({
         success: true,
@@ -60,10 +68,14 @@ export class CategoryController {
 
   async updateCategory(req: Request, res: Response, next: NextFunction) {
     try {
-      const branchId = req.user!.outletId!;
       const data = updateCategorySchema.parse(req.body);
       
-      const category = await categoryService.updateCategory(req.params.id as string, branchId, data);
+      const category = await categoryService.updateCategory(
+        req.params.id as string, 
+        data,
+        req.user!.role,
+        req.user!.businessId ?? null,
+      );
       
       res.status(200).json({
         success: true,
@@ -77,9 +89,11 @@ export class CategoryController {
 
   async deleteCategory(req: Request, res: Response, next: NextFunction) {
     try {
-      const branchId = req.user!.outletId!;
-      
-      await categoryService.deleteCategory(req.params.id as string, branchId);
+      await categoryService.deleteCategory(
+        req.params.id as string, 
+        req.user!.role,
+        req.user!.businessId ?? null,
+      );
       
       res.status(200).json({
         success: true,
