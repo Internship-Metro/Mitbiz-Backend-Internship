@@ -51,7 +51,23 @@ export const jwtAuthGuard = async (
       return;
     }
 
-    // 5. Token valid → simpan payload ke req.user untuk diakses di controller
+    // 5. Cek status akun user (HARUS ACTIVE)
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { status: true },
+    });
+    
+    if (!user) {
+      sendError(res, 'Akun tidak ditemukan.', 401);
+      return;
+    }
+
+    if (user.status !== 'ACTIVE') {
+      sendError(res, 'Akun belum aktif atau email belum diverifikasi.', 403);
+      return;
+    }
+
+    // 6. Token valid & user ACTIVE → simpan payload ke req.user
     req.user = payload;
 
     next(); // Lanjut ke handler berikutnya

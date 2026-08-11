@@ -59,6 +59,12 @@ export const httpExceptionFilter = (
     return;
   }
 
+  // SyntaxError dari body-parser (misal: JSON body cacat/ada koma berlebih)
+  if (err instanceof SyntaxError && 'status' in err && err.status === 400 && 'body' in err) {
+    sendError(res, 'Format JSON tidak valid. Periksa penulisan koma, kutip, atau kurung pada body request Anda.', 400);
+    return;
+  }
+
   // Prisma error — record tidak ditemukan
   if (err.constructor.name === 'PrismaClientKnownRequestError') {
     const prismaErr = err as unknown as { code: string };

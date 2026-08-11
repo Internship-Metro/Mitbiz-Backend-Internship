@@ -11,8 +11,20 @@ export const requirePermissions = (requiredPermissions: MenuPermission[]) => {
         throw new AppError('Unauthorized', 401);
       }
 
-      // SUPER_ADMIN and ADMIN have access to all menus implicitly
-      if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
+      // SUPER_ADMIN has access to all menus implicitly
+      if (user.role === 'SUPER_ADMIN') {
+        return next();
+      }
+
+      // ADMIN has access to semua menu KECUALI fitur yang murni khusus Kasir (MENU_POS)
+      if (user.role === 'ADMIN') {
+        // Jika endpoint ini HANYA membutuhkan akses MENU_POS, tolak Admin.
+        // (Misalnya endpoint Buka/Tutup Shift mandiri, Kasir Dashboard, dll)
+        if (requiredPermissions.length === 1 && requiredPermissions[0] === MenuPermission.MENU_POS) {
+          throw new AppError('Akses ditolak. Fitur ini hanya tersedia pada modul Point of Sale (POS).', 403);
+        }
+        
+        // Selain itu (misal butuh MENU_SHIFT atau MENU_DASHBOARD), Admin otomatis lolos
         return next();
       }
 
