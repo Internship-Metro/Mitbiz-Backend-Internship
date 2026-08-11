@@ -77,7 +77,7 @@ export class TransactionRepository {
       for (const item of data.items) {
         // Kurangi stok
         await tx.stock.update({
-          where: { productId: item.productId },
+          where: { productId_outletId: { productId: item.productId, outletId: data.outletId } },
           data: {
             quantity: {
               decrement: item.quantity,
@@ -188,7 +188,7 @@ export class TransactionRepository {
       // Profesional POS biasanya membuat audit trail baru tipe CORRECTION
       for (const item of transaction.items) {
         await tx.stock.update({
-          where: { productId: item.productId },
+          where: { productId_outletId: { productId: item.productId, outletId: transaction.outletId } },
           data: {
             quantity: { increment: item.quantity },
           },

@@ -56,18 +56,25 @@ export class TransactionService {
     const snapshotItems = [];
 
     for (const itemDto of payload.items) {
-      // Ambil produk dan stok
+      // Ambil produk dan stok untuk outlet ini
       const product = await prisma.product.findUnique({
         where: { id: itemDto.productId },
-        include: { stock: true },
+        include: {
+          stocks: {
+            where: { outletId },
+          },
+        },
       });
 
-      if (!product || product.outletId !== outletId) {
-        throw new AppError(`Produk dengan ID ${itemDto.productId} tidak ditemukan di outlet ini`, 404);
+      // Validasi produk milik bisnis yang sama
+      if (!product || product.businessId !== outlet.businessId) {
+        throw new AppError(`Produk dengan ID ${itemDto.productId} tidak ditemukan di bisnis ini`, 404);
       }
       
-      if (!product.stock || product.stock.quantity < itemDto.quantity) {
-        throw new AppError(`Stok produk ${product.name} tidak mencukupi (Tersisa: ${product.stock?.quantity || 0})`, 400);
+      // Ambil stok khusus untuk outlet ini
+      const stockForOutlet = product.stocks[0];
+      if (!stockForOutlet || stockForOutlet.quantity < itemDto.quantity) {
+        throw new AppError(`Stok produk ${product.name} tidak mencukupi (Tersisa: ${stockForOutlet?.quantity || 0})`, 400);
       }
 
       // Hitung subtotal per item: (harga * qty) - diskon
