@@ -47,10 +47,8 @@ export const CreateUserDto = z.object({
     if (!data.username) {
       ctx.addIssue({ code: 'custom', message: 'username wajib diisi untuk STAFF', path: ['username'] });
     }
-    // STAFF wajib punya outletId
-    if (!data.outletId) {
-      ctx.addIssue({ code: 'custom', message: 'outletId wajib diisi jika role adalah STAFF', path: ['outletId'] });
-    }
+    // STAFF sekarang TIDAK wajib punya outletId. 
+    // Jika outletId kosong (null/undefined), berarti STAFF ini punya akses "Semua Cabang".
   } else {
     // ADMIN wajib punya email
     if (!data.email) {
