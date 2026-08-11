@@ -6,7 +6,11 @@ export class ShiftController {
   async openShift(req: Request, res: Response, next: NextFunction) {
     try {
       const kasirId = req.user!.userId;
-      const outletId = req.user!.outletId!; // Karena kasir pasti punya outletId
+      const outletId = req.user!.outletId;
+
+      if (!outletId) {
+        return sendSuccess(res, null, 'Hanya Kasir yang terikat dengan outlet yang bisa membuka shift sendiri. Gunakan fitur Force Open untuk Admin.', 403);
+      }
 
       const result = await shiftService.openShift(outletId, kasirId, req.body);
       return sendSuccess(res, result, 'Shift berhasil dibuka', 201);
@@ -40,8 +44,13 @@ export class ShiftController {
 
   async getShiftHistory(req: Request, res: Response, next: NextFunction) {
     try {
-      // Kasir akan melihat shift history di outletnya sendiri, Admin juga melihat outletnya
-      const outletId = req.user!.outletId!;
+      // Kasir akan melihat shift history di outletnya sendiri, Admin melihat dari query
+      const outletId = req.user!.outletId || (req.query.outletId as string);
+      
+      if (!outletId) {
+        return res.status(400).json({ success: false, message: 'Parameter outletId diperlukan (bisa dikirim via query ?outletId=...)' });
+      }
+
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
 
@@ -53,6 +62,72 @@ export class ShiftController {
         data: result.data,
         meta: result.meta,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ==========================================
+  // ENDPOINT ADMIN
+  // ==========================================
+
+  async getShiftSummary(req: Request, res: Response, next: NextFunction) {
+    try {
+      const outletId = req.user!.outletId || (req.query.outletId as string);
+      if (!outletId) {
+        return res.status(400).json({ success: false, message: 'Parameter outletId diperlukan' });
+      }
+      const result = await shiftService.getAdminShiftSummary(outletId);
+      return sendSuccess(res, result, 'Statistik shift berhasil diambil', 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getCashiers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const outletId = req.user!.outletId || (req.query.outletId as string);
+      if (!outletId) {
+        return res.status(400).json({ success: false, message: 'Parameter outletId diperlukan' });
+      }
+      const result = await shiftService.getAdminCashiers(outletId);
+      return sendSuccess(res, result, 'Daftar kasir berhasil diambil', 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async forceOpenShift(req: Request, res: Response, next: NextFunction) {
+    try {
+      const outletId = req.user!.outletId || (req.query.outletId as string) || req.body.outletId;
+      if (!outletId) {
+        return res.status(400).json({ success: false, message: 'Parameter outletId diperlukan' });
+      }
+      
+      const { kasirId, openingCash, notes } = req.body;
+      if (!kasirId) {
+        return res.status(400).json({ success: false, message: 'kasirId diperlukan' });
+      }
+
+      // Untuk admin, kita allow openingCash null/undefined dengan default 0
+      const dto = { openingCash: openingCash ?? 0, notes };
+      const result = await shiftService.openShift(outletId, kasirId, dto);
+      return sendSuccess(res, result, 'Shift berhasil dibuka secara paksa oleh Admin', 201);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async forceCloseShift(req: Request, res: Response, next: NextFunction) {
+    try {
+      const shiftId = req.params.id as string;
+      const adminId = req.user!.userId as string;
+      const { closingCash, notes } = req.body;
+
+      // Admin tidak harus menjadi kasir pemilik shift, service akan membypass cek kasirId jika di-pass flag khusus
+      const dto = { closingCash: closingCash ?? 0, notes };
+      const result = await shiftService.forceCloseShiftByAdmin(shiftId, adminId, dto);
+      return sendSuccess(res, result, 'Shift berhasil ditutup secara paksa oleh Admin', 200);
     } catch (error) {
       next(error);
     }

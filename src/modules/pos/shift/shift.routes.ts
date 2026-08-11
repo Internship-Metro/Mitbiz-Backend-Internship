@@ -59,4 +59,49 @@ router.get(
   shiftController.getShiftHistory.bind(shiftController)
 );
 
+// ==========================================
+// ROUTE ADMIN (MENU_SHIFT)
+// ==========================================
+
+/**
+ * @route GET /api/v1/shifts/summary
+ * @desc Statistik shift hari ini (Admin)
+ */
+router.get(
+  '/summary',
+  requirePermissions([MenuPermission.MENU_SHIFT]),
+  shiftController.getShiftSummary.bind(shiftController)
+);
+
+/**
+ * @route GET /api/v1/shifts/cashiers
+ * @desc Daftar kasir dan status shiftnya (Admin)
+ */
+router.get(
+  '/cashiers',
+  requirePermissions([MenuPermission.MENU_SHIFT]),
+  shiftController.getCashiers.bind(shiftController)
+);
+
+/**
+ * @route POST /api/v1/shifts/admin/force-open
+ * @desc Memaksa buka shift untuk kasir
+ */
+router.post(
+  '/admin/force-open',
+  requirePermissions([MenuPermission.MENU_SHIFT]),
+  // Kita bisa pakai skema validasi khusus admin, tapi karena opsional, kita tidak perlu validasi strict
+  shiftController.forceOpenShift.bind(shiftController)
+);
+
+/**
+ * @route PATCH /api/v1/shifts/:id/admin/force-close
+ * @desc Memaksa tutup shift milik kasir
+ */
+router.patch(
+  '/:id/admin/force-close',
+  requirePermissions([MenuPermission.MENU_SHIFT]),
+  shiftController.forceCloseShift.bind(shiftController)
+);
+
 export default router;

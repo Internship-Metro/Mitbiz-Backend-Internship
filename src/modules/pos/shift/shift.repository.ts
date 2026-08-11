@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma, Shift } from '@prisma/client';
+import { PrismaClient, Prisma, Shift, MenuPermission } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -6,11 +6,26 @@ export class ShiftRepository {
   /**
    * Cari shift yang sedang berjalan (aktif) milik seorang kasir
    */
-  async getActiveShift(kasirId: string): Promise<Shift | null> {
+  async getActiveShift(kasirId: string): Promise<any | null> {
     return prisma.shift.findFirst({
       where: {
         kasirId,
         closedAt: null, // Jika null, berarti belum ditutup (masih aktif)
+      },
+      include: {
+        transactions: {
+          where: {
+            status: 'COMPLETED',
+          },
+          select: {
+            totalAmount: true,
+            discountAmount: true,
+            taxAmount: true,
+            paymentMethod: {
+              select: { type: true },
+            },
+          },
+        },
       },
     });
   }
@@ -73,6 +88,8 @@ export class ShiftRepository {
             },
             select: {
               totalAmount: true,
+              discountAmount: true,
+              taxAmount: true,
               paymentMethod: {
                 select: { type: true },
               },
@@ -98,6 +115,80 @@ export class ShiftRepository {
         kasir: { select: { id: true, name: true } },
       },
     });
+  }
+
+  // ==========================================
+  // QUERY KHUSUS ADMIN
+  // ==========================================
+
+  /**
+   * Ambil statistik ringkasan shift hari ini untuk dashboard Admin
+   */
+  async getShiftSummaryForToday(outletId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Hitung shift yang saat ini sedang aktif (closedAt = null)
+    const activeShiftsCount = await prisma.shift.count({
+      where: { outletId, closedAt: null },
+    });
+
+    // Hitung semua shift yang dibuat hari ini (mulai jam 00:00)
+    const todayShiftsCount = await prisma.shift.count({
+      where: { outletId, openedAt: { gte: today } },
+    });
+
+    // Hitung total penjualan hari ini dari transaksi yang COMPLETED
+    const todayTransactions = await prisma.transaction.aggregate({
+      where: { 
+        outletId, 
+        status: 'COMPLETED',
+        createdAt: { gte: today } 
+      },
+      _sum: {
+        totalAmount: true,
+      },
+    });
+
+    return {
+      activeShifts: activeShiftsCount,
+      todayShifts: todayShiftsCount,
+      todayRevenue: todayTransactions._sum.totalAmount || 0,
+    };
+  }
+
+  /**
+   * Ambil daftar kasir di outlet ini beserta status shift aktifnya
+   */
+  async getCashiersWithShiftStatus(outletId: string) {
+    // Ambil user yang rolenya STAFF dan terikat di outlet ini
+    const cashiers = await prisma.user.findMany({
+      where: { 
+        outletId, 
+        role: 'STAFF', 
+        status: 'ACTIVE',
+        customRole: {
+          permissions: { has: MenuPermission.MENU_POS }
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        shifts: {
+          where: { closedAt: null }, // Cek apakah ada shift aktif
+          select: { id: true, openedAt: true },
+          take: 1,
+        },
+      },
+    });
+
+    return cashiers.map((cashier) => ({
+      id: cashier.id,
+      name: cashier.name,
+      activeShiftId: cashier.shifts.length > 0 ? cashier.shifts[0].id : null,
+      activeShiftOpenedAt: cashier.shifts.length > 0 ? cashier.shifts[0].openedAt : null,
+      status: cashier.shifts.length > 0 ? 'Sedang Bertugas' : 'Tidak Ada Shift Aktif',
+    }));
   }
 }
 

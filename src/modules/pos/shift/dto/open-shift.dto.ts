@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 export const openShiftSchema = z.object({
   openingCash: z.number({
-    message: 'Modal awal harus berupa angka dan wajib diisi',
-  }).min(0, 'Modal awal tidak boleh negatif'),
+    invalid_type_error: 'Modal awal harus berupa angka',
+  }).min(0, 'Modal awal tidak boleh negatif').default(0),
   notes: z.string().optional(),
 });
 
