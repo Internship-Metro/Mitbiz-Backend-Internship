@@ -67,6 +67,45 @@ export class AuthService {
   }
 
   /**
+   * Update Step 1: Edit data user (nama, email, password) yang sudah terdaftar tapi belum selesai registrasi.
+   * Dipanggil saat user klik "Back" dari Step 2 atau Step 3 untuk perbaiki data diri.
+   */
+  async updateStep1(userId: string, data: RegisterStep1Type) {
+    const user = await authRepository.findUserById(userId);
+    if (!user) throw new AppError('User tidak ditemukan', 404);
+
+    if (user.status === 'ACTIVE') {
+      throw new AppError('Akun sudah aktif. Silakan edit profil di halaman pengaturan.', 400);
+    }
+
+    // Cek jika email berubah, pastikan tidak terpakai orang lain
+    if (data.email !== user.email) {
+      const existing = await authRepository.findUserByEmail(data.email);
+      if (existing) {
+        throw new AppError('Email sudah digunakan oleh akun lain.', 400);
+      }
+    }
+
+    const hashedPassword = await hashPassword(data.password);
+
+    const updatedUser = await authRepository.updateUser(userId, {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      password: hashedPassword,
+    });
+
+    return {
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+      }
+    };
+  }
+
+  /**
    * Cancel Registration: Hapus semua data registrasi yang belum selesai.
    *
    * Dipanggil ketika user memilih "Batalkan" di dialog konfirmasi registrasi.
@@ -141,6 +180,34 @@ export class AuthService {
     await authRepository.updateUserBusinessId(userId, business.id);
 
     return business;
+  }
+
+  /**
+   * Update Step 2: Edit data bisnis yang sudah terdaftar.
+   * Dipanggil saat user klik "Back" di Step 3 → perbaiki typo → submit ulang.
+   * Hanya boleh dipakai SEBELUM registrasi selesai (user masih INACTIVE atau belum punya outlet).
+   */
+  async updateStep2(userId: string, data: RegisterStep2Type) {
+    const user = await authRepository.findUserById(userId);
+    if (!user) throw new AppError('User tidak ditemukan', 404);
+
+    // Pastikan user memang sudah di Step 2 (sudah punya bisnis)
+    if (!user.businessId) {
+      throw new AppError('Bisnis belum terdaftar. Gunakan POST /register/step2 terlebih dahulu.', 400);
+    }
+
+    // Generate slug baru dari nama bisnis yang telah diperbaiki
+    const slug = data.businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
+
+    const updatedBusiness = await authRepository.updateBusiness(user.businessId, {
+      name: data.businessName,
+      slug,
+      businessCategory: data.businessCategory,
+      city: data.city,
+      province: data.province,
+    });
+
+    return updatedBusiness;
   }
 
   /**
@@ -420,7 +487,6 @@ export class AuthService {
       businessId: user.businessId,
       outletId: user.outletId,
       avatarUrl: user.avatarUrl,
-      permissions: user.customRole?.permissions || [], // <-- Tambahan untuk frontend
     };
   }
 }

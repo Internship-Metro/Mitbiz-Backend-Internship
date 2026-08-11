@@ -35,6 +35,14 @@ export class AuthRepository {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async updateUser(userId: string, data: any): Promise<User> {
+    return prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+  }
+
   /**
    * Hapus user beserta semua data relasinya (business, outlet)
    * Dipakai saat user restart registrasi dengan email yang sama
@@ -73,6 +81,14 @@ export class AuthRepository {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createBusiness(data: any): Promise<Business> {
     return prisma.business.create({
+      data,
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async updateBusiness(businessId: string, data: any): Promise<Business> {
+    return prisma.business.update({
+      where: { id: businessId },
       data,
     });
   }

@@ -37,8 +37,14 @@ router.post('/login', validate(LoginDto), authController.login);
 // Menerima token dari Step 1 biasa ATAU token resume login
 // ==========================================
 
+// Update Step 1: Edit data user (skenario "Back" dari Step 2 atau 3 → perbaiki data diri)
+router.patch('/register/step1', registrationGuard, validate(RegisterStep1Dto), authController.updateStep1);
+
 // Register Step 2: Daftarkan bisnis/tenant
 router.post('/register/step2', registrationGuard, validate(RegisterStep2Dto), authController.registerStep2);
+
+// Update Step 2: Edit data bisnis yang sudah terdaftar (skenario "Back" dari Step 3 → perbaiki typo)
+router.patch('/register/step2', registrationGuard, validate(RegisterStep2Dto), authController.updateStep2);
 
 // Register Step 3: Daftarkan cabang pertama
 router.post('/register/step3', registrationGuard, validate(RegisterStep3Dto), authController.registerStep3);

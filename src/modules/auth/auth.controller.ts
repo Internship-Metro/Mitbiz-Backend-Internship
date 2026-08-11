@@ -21,6 +21,18 @@ export class AuthController {
     }
   }
 
+  // Dipanggil saat user klik "Back" ke Step 1 untuk perbaiki data profil
+  async updateStep1(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId; // Butuh registrationGuard
+      const data = req.body;
+      const result = await authService.updateStep1(userId, data);
+      sendSuccess(res, result, 'Data profil registrasi berhasil diperbarui');
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async verifyEmail(req: Request, res: Response, next: NextFunction) {
     try {
       const token = req.query.token as string;
@@ -51,6 +63,18 @@ export class AuthController {
       const data = req.body;
       const result = await authService.registerStep2(userId, data);
       sendSuccess(res, result, 'Berhasil mendaftarkan bisnis (Step 2 selesai)', 201);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Dipanggil saat user klik "Back" di Step 3 lalu perbaiki data bisnis
+  async updateStep2(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const data = req.body;
+      const result = await authService.updateStep2(userId, data);
+      sendSuccess(res, result, 'Data bisnis berhasil diperbarui');
     } catch (error) {
       next(error);
     }
