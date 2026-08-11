@@ -173,6 +173,22 @@ export class PaymentMethodRepository {
       await this.activateInBranch(outletId, paymentMethodId);
     }
   }
+
+  /**
+   * Validasi apakah semua outletId yang diberikan benar-benar milik businessId tertentu
+   */
+  async validateOutletsBelongToBusiness(outletIds: string[], businessId: string): Promise<boolean> {
+    if (!outletIds || outletIds.length === 0) return true;
+    
+    const uniqueOutletIds = [...new Set(outletIds)];
+    const count = await prisma.outlet.count({
+      where: {
+        id: { in: uniqueOutletIds },
+        businessId,
+      },
+    });
+    return count === uniqueOutletIds.length;
+  }
 }
 
 export const paymentMethodRepository = new PaymentMethodRepository();

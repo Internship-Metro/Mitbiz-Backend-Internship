@@ -71,8 +71,16 @@ export class PaymentMethodController {
   async getActiveMethodsByBranch(req: Request, res: Response, next: NextFunction) {
     try {
       const outletId = req.params.outletId as string;
+      const user = req.user;
+      
+      if (!user || !user.businessId) throw new AppError('Akses ditolak.', 403);
+
+      if (user.role === 'STAFF' && user.outletId !== outletId) {
+        throw new AppError('Anda hanya dapat mengakses data cabang Anda sendiri.', 403);
+      }
+
       // Kasir & Admin bisa akses ini
-      const methods = await paymentMethodService.getActiveMethodsByBranch(outletId);
+      const methods = await paymentMethodService.getActiveMethodsByBranch(outletId, user.businessId);
       return sendSuccess(res, methods, 'Berhasil mengambil metode pembayaran aktif di cabang ini');
     } catch (error) {
       next(error);

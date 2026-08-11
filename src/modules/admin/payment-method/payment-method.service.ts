@@ -8,7 +8,12 @@ export class PaymentMethodService {
     return paymentMethodRepository.findByBusiness(businessId);
   }
 
-  async getActiveMethodsByBranch(outletId: string) {
+  async getActiveMethodsByBranch(outletId: string, businessId?: string) {
+    if (businessId) {
+      const validOutlet = await paymentMethodRepository.validateOutletsBelongToBusiness([outletId], businessId);
+      if (!validOutlet) throw new AppError('Outlet tidak valid atau bukan milik bisnis Anda.', 403);
+    }
+
     const pivotRecords = await paymentMethodRepository.findActiveByBranch(outletId);
     // Transform agar bentuknya lebih ramah frontend (mereturn array of PaymentMethod)
     return pivotRecords.map((pivot) => pivot.paymentMethod);
@@ -21,7 +26,15 @@ export class PaymentMethodService {
       throw new AppError(`Metode pembayaran dengan nama '${dto.name}' sudah ada di bisnis ini.`, 400);
     }
 
-    // 2. Siapkan relasi outlet jika ada array outletIds
+    // 2. Validasi array outletIds (pastikan semua milik business ini)
+    if (dto.outletIds && dto.outletIds.length > 0) {
+      const validOutlets = await paymentMethodRepository.validateOutletsBelongToBusiness(dto.outletIds, businessId);
+      if (!validOutlets) {
+        throw new AppError('Satu atau lebih Outlet ID tidak valid atau bukan milik bisnis Anda.', 400);
+      }
+    }
+
+    // 3. Siapkan relasi outlet jika ada array outletIds
     const outletConnections = dto.outletIds?.map((id) => ({
       outletId: id,
       isActive: true,
@@ -68,6 +81,12 @@ export class PaymentMethodService {
 
     // 4. Jika outletIds di-provide, sinkronisasi tabel pivot
     if (dto.outletIds !== undefined) {
+      if (dto.outletIds.length > 0) {
+        const validOutlets = await paymentMethodRepository.validateOutletsBelongToBusiness(dto.outletIds, businessId);
+        if (!validOutlets) {
+          throw new AppError('Satu atau lebih Outlet ID tidak valid atau bukan milik bisnis Anda.', 400);
+        }
+      }
       await paymentMethodRepository.syncOutlets(id, dto.outletIds);
     }
 
@@ -88,6 +107,9 @@ export class PaymentMethodService {
   }
 
   async activateInBranch(businessId: string, outletId: string, paymentMethodId: string) {
+    const validOutlet = await paymentMethodRepository.validateOutletsBelongToBusiness([outletId], businessId);
+    if (!validOutlet) throw new AppError('Outlet tidak valid atau bukan milik bisnis Anda.', 400);
+
     // Pastikan metode milik bisnis
     const method = await paymentMethodRepository.findById(paymentMethodId);
     if (!method || method.businessId !== businessId) {
@@ -99,6 +121,9 @@ export class PaymentMethodService {
   }
 
   async deactivateInBranch(businessId: string, outletId: string, paymentMethodId: string) {
+    const validOutlet = await paymentMethodRepository.validateOutletsBelongToBusiness([outletId], businessId);
+    if (!validOutlet) throw new AppError('Outlet tidak valid atau bukan milik bisnis Anda.', 400);
+
     // Pastikan metode milik bisnis
     const method = await paymentMethodRepository.findById(paymentMethodId);
     if (!method || method.businessId !== businessId) {
