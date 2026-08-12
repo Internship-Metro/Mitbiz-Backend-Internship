@@ -101,6 +101,7 @@ enum PaymentMethodType {
   DEBIT // Kartu debit (gesek mesin EDC)
   CREDIT // Kartu kredit (gesek mesin EDC)
   QRIS // QR Code Indonesian Standard (GoPay, OVO, Dana, dll.)
+  E_WALLET // Dompet digital (GoPay, OVO, Dana, ShopeePay, dll.)
   TRANSFER // Transfer bank manual (BCA, Mandiri, dll.)
   OTHER // Metode lain yang tidak masuk kategori di atas
 }
