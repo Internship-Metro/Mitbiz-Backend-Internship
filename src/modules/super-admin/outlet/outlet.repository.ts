@@ -48,7 +48,6 @@ export class SuperAdminOutletRepository {
           _count: {
             select: {
               users: { where: { deletedAt: null } },
-              products: { where: { deletedAt: null } },
             },
           },
           transactions: {
@@ -69,7 +68,8 @@ export class SuperAdminOutletRepository {
     // Hitung agregasi per outlet
     const data = outlets.map((outlet) => {
       const revenue30d = outlet.transactions.reduce(
-        (sum, tx) => sum + Number(tx.totalAmount),
+        (sum: number, tx: { totalAmount: bigint | number }) =>
+          sum + Number(tx.totalAmount),
         0,
       );
       const transactionCount30d = outlet.transactions.length;
@@ -81,7 +81,6 @@ export class SuperAdminOutletRepository {
         ...outletData,
         stats: {
           userCount: outlet._count.users,
-          productCount: outlet._count.products,
           revenue30d,
           transactionCount30d,
         },
@@ -105,7 +104,6 @@ export class SuperAdminOutletRepository {
         _count: {
           select: {
             users: { where: { deletedAt: null } },
-            products: { where: { deletedAt: null } },
           },
         },
         users: {
@@ -142,7 +140,6 @@ export class SuperAdminOutletRepository {
       ...outlet,
       stats: {
         userCount: outlet._count.users,
-        productCount: outlet._count.products,
         revenue30d: Number(txStats._sum.totalAmount ?? 0),
         transactionCount30d: txStats._count.id,
       },
