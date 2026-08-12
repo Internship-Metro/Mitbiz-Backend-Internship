@@ -1,5 +1,14 @@
 -- Migration: replace outletId with businessId in category and product tables
 -- Mengganti kolom outletId menjadi businessId di tabel category dan product
+-- Data lama dihapus dulu karena tidak bisa diisi businessId yang valid secara otomatis
+
+-- ============================================================
+-- Hapus data turunan dulu (karena FK ke product/category)
+-- ============================================================
+DELETE FROM "transaction_item";
+DELETE FROM "transaction";
+DELETE FROM "stock_adjustment";
+DELETE FROM "stock";
 
 -- ============================================================
 -- CATEGORY TABLE
@@ -13,11 +22,15 @@ DROP INDEX IF EXISTS "category_outletId_name_key";
 -- Hapus kolom lama
 ALTER TABLE "category" DROP COLUMN IF EXISTS "outletId";
 
--- Tambah kolom baru
-ALTER TABLE "category" ADD COLUMN "businessId" TEXT NOT NULL DEFAULT '';
+-- Hapus semua data kategori lama (tidak bisa diisi businessId)
+DELETE FROM "product";
+DELETE FROM "category";
 
--- Hapus default setelah kolom dibuat
-ALTER TABLE "category" ALTER COLUMN "businessId" DROP DEFAULT;
+-- Tambah kolom baru (nullable dulu, baru jadikan NOT NULL setelah constraint siap)
+ALTER TABLE "category" ADD COLUMN "businessId" TEXT;
+
+-- Jadikan NOT NULL
+ALTER TABLE "category" ALTER COLUMN "businessId" SET NOT NULL;
 
 -- Tambah index dan constraint baru
 CREATE INDEX "category_businessId_idx" ON "category"("businessId");
@@ -39,10 +52,10 @@ DROP INDEX IF EXISTS "product_categoryId_idx";
 ALTER TABLE "product" DROP COLUMN IF EXISTS "outletId";
 
 -- Tambah kolom baru
-ALTER TABLE "product" ADD COLUMN "businessId" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "product" ADD COLUMN "businessId" TEXT;
 
--- Hapus default setelah kolom dibuat
-ALTER TABLE "product" ALTER COLUMN "businessId" DROP DEFAULT;
+-- Jadikan NOT NULL
+ALTER TABLE "product" ALTER COLUMN "businessId" SET NOT NULL;
 
 -- Tambah index dan constraint baru
 CREATE INDEX "product_businessId_idx" ON "product"("businessId");
