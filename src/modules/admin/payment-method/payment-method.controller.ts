@@ -15,8 +15,13 @@ export class PaymentMethodController {
       const businessId = req.user?.businessId;
       if (!businessId) throw new AppError('Akses ditolak. Bisnis tidak ditemukan.', 403);
 
-      const methods = await paymentMethodService.getMethodsByBusiness(businessId);
-      return sendSuccess(res, methods, 'Berhasil mengambil daftar metode pembayaran');
+      const { search, page, limit } = req.query;
+      const result = await paymentMethodService.getMethodsByBusiness(businessId, {
+        search: search as string | undefined,
+        page: page ? Number(page) : 1,
+        limit: limit ? Number(limit) : 20,
+      });
+      return sendSuccess(res, result, 'Berhasil mengambil daftar metode pembayaran');
     } catch (error) {
       next(error);
     }

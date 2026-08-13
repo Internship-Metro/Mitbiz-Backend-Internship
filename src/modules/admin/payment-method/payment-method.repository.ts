@@ -4,24 +4,45 @@ const prisma = new PrismaClient();
 
 export class PaymentMethodRepository {
   /**
-   * Mengambil semua metode pembayaran di tingkat bisnis
+   * Mengambil semua metode pembayaran di tingkat bisnis (dengan search & pagination)
    */
-  async findByBusiness(businessId: string): Promise<PaymentMethod[]> {
-    return prisma.paymentMethod.findMany({
-      where: { businessId },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        outletPaymentMethods: {
-          select: {
-            outletId: true,
-            isActive: true,
-            outlet: {
-              select: { name: true },
+  async findByBusiness(
+    businessId: string,
+    options?: { search?: string; page?: number; limit?: number },
+  ): Promise<{ data: PaymentMethod[]; total: number }> {
+    const page = options?.page ?? 1;
+    const limit = options?.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.PaymentMethodWhereInput = {
+      businessId,
+      ...(options?.search && {
+        name: { contains: options.search, mode: 'insensitive' },
+      }),
+    };
+
+    const [data, total] = await Promise.all([
+      prisma.paymentMethod.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          outletPaymentMethods: {
+            select: {
+              outletId: true,
+              isActive: true,
+              outlet: {
+                select: { name: true },
+              },
             },
           },
         },
-      },
-    });
+      }),
+      prisma.paymentMethod.count({ where }),
+    ]);
+
+    return { data, total };
   }
 
   /**

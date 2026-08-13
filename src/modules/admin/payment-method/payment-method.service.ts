@@ -4,8 +4,11 @@ import { UpdatePaymentMethodDto } from './dto/update-payment-method.dto';
 import { AppError } from '@common/utils/app-error.util';
 
 export class PaymentMethodService {
-  async getMethodsByBusiness(businessId: string) {
-    return paymentMethodRepository.findByBusiness(businessId);
+  async getMethodsByBusiness(
+    businessId: string,
+    options?: { search?: string; page?: number; limit?: number },
+  ) {
+    return paymentMethodRepository.findByBusiness(businessId, options);
   }
 
   async getActiveMethodsByBranch(outletId: string, businessId?: string) {
