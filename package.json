@@ -14,7 +14,7 @@
     "format": "prettier --write src/**/*.ts",
     "test": "jest --config jest.config.js --forceExit",
     "test:watch": "jest --config jest.config.js --watch",
-    "docs:lint": "redocly lint src/docs/openapi.yaml --config .redocly.yaml"
+    "docs:lint": "npx @redocly/cli lint src/docs/openapi.yaml --config .redocly.yaml"
   },
   "keywords": [],
   "author": "",

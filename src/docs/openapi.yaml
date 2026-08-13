@@ -1,0 +1,4489 @@
+openapi: 3.0.3
+info:
+  title: Mitbiz API
+  version: 1.0.0
+  description: >-
+    Dokumentasi Resmi API Backend Mitbiz POS & Multi-Outlet. Seluruh endpoint, request, dan response disesuaikan dengan
+    kebutuhan aplikasi.
+  license:
+    name: Proprietary
+servers:
+  - url: 'https://mitbiz-backend-internship-production.up.railway.app/api/v1'
+    description: Production Server
+  - url: 'http://localhost:3000/api/v1'
+    description: Local Development Server
+tags:
+  - name: Auth
+    description: Autentikasi & Registrasi Pengguna
+  - name: Manajemen Cabang (By Non - Super Admin)
+    description: Kelola Cabang Milik Bisnis Sendiri
+  - name: Manajemen Cabang (By Super Admin)
+    description: Kelola Seluruh Cabang oleh Super Admin
+  - name: Manajemen Karyawan (By Non - Super Admin)
+    description: Kelola Staff / Kasir Cabang
+  - name: Manajemen User (By Super Admin)
+    description: Kelola Pengguna Sistem oleh Super Admin
+  - name: Category
+    description: Kelola Kategori Produk
+  - name: Product
+    description: Kelola Katalog Produk
+  - name: Roles
+    description: Kelola Role & Hak Akses Pengguna
+  - name: Payment Method
+    description: Kelola Metode Pembayaran Global & Cabang
+  - name: Pengaturan
+    description: Konfigurasi Sistem & Profil Toko
+  - name: Stock
+    description: Manajemen & Mutasi Stok Barang
+  - name: Shift
+    description: Manajemen Shift Operasional Kasir
+  - name: Transaction
+    description: Transaksi Penjualan POS & Pelunasan
+  - name: Dashboard
+    description: Statistik & Ringkasan Dashboard
+  - name: Laporan
+    description: 'Laporan Penjualan, Stok, & Ekspor PDF/Excel'
+paths:
+  /auth/register/step1:
+    post:
+      tags:
+        - Auth
+      summary: Register Step 1
+      description: 'Register Step 1 - Folder: Auth'
+      operationId: Auth_Register_Step_1_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Budi Santoso
+                email: budi@example.com
+                phone: 08123456789
+                password: password123
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    patch:
+      tags:
+        - Auth
+      summary: Update Step 1 (Edit Akun saat Registrasi)
+      description: 'Update Step 1 (Edit Akun saat Registrasi) - Folder: Auth'
+      operationId: Auth_Update_Step_1__Edit_Akun_saat_Registrasi__patch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Budi Santoso
+                email: budi@example.com
+                phone: 08123456789
+                password: password123
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /auth/register/step2:
+    post:
+      tags:
+        - Auth
+      summary: Register Step 2
+      description: 'Register Step 2 - Folder: Auth'
+      operationId: Auth_Register_Step_2_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                businessName: Toko Budi
+                businessType: RETAIL
+                address: Jl. Merdeka No 1
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    patch:
+      tags:
+        - Auth
+      summary: Update Step 2 (Edit Bisnis saat Registrasi)
+      description: 'Update Step 2 (Edit Bisnis saat Registrasi) - Folder: Auth'
+      operationId: Auth_Update_Step_2__Edit_Bisnis_saat_Registrasi__patch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                businessName: Toko Budi
+                businessType: RETAIL
+                address: Jl. Merdeka No 1
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /auth/register/step3:
+    post:
+      tags:
+        - Auth
+      summary: Register Step 3
+      description: 'Register Step 3 - Folder: Auth'
+      operationId: Auth_Register_Step_3_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                outletName: Cabang Utama
+                outletAddress: Jl. Merdeka No 1
+                outletPhone: 08123456789
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /auth/login:
+    post:
+      tags:
+        - Auth
+        - Manajemen Karyawan (By Non - Super Admin)
+      summary: Login
+      description: 'Login - Folder: Auth'
+      operationId: Auth_Login_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                identity: user@example.com
+                password: password123
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    get:
+      tags:
+        - Auth
+      summary: Profil Yang Sedang Login
+      description: 'Profil Yang Sedang Login - Folder: Auth'
+      operationId: Auth_Profil_Yang_Sedang_Login_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /auth/change-password:
+    patch:
+      tags:
+        - Auth
+      summary: Change Password
+      description: 'Change Password - Folder: Auth'
+      operationId: Auth_Change_Password_patch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                oldPassword: password123
+                newPassword: newpassword456
+                confirmNewPassword: newpassword456
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout
+      description: 'Logout - Folder: Auth'
+      operationId: Auth_Logout_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /auth/verify-email:
+    get:
+      tags:
+        - Auth
+      summary: Verifikasi Akun
+      description: 'Verifikasi Akun - Folder: Auth'
+      operationId: Auth_Verifikasi_Akun_get
+      parameters:
+        - name: token
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter parameter token
+          example: f1797dce-e779-49ed-85e4-1e043cc3be19
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /auth/resend-verification:
+    post:
+      tags:
+        - Auth
+      summary: Resend Email Verifikasi
+      description: 'Resend Email Verifikasi - Folder: Auth'
+      operationId: Auth_Resend_Email_Verifikasi_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /auth/refresh-token:
+    post:
+      tags:
+        - Auth
+      summary: Refresh Token
+      description: 'Refresh Token - Folder: Auth'
+      operationId: Auth_Refresh_Token_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /outlets:
+    get:
+      tags:
+        - Manajemen Cabang (By Non - Super Admin)
+      summary: Lihat Semua Cabang Bisnis Sendiri
+      description: 'Lihat Semua Cabang Bisnis Sendiri - Folder: Manajemen Cabang (By Non - Super Admin)'
+      operationId: Manajemen_Cabang__By_Non___Super_Admin__Lihat_Semua_Cabang_Bisnis_Sendiri_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Manajemen Cabang (By Non - Super Admin)
+      summary: Tambah Cabang Baru Bisnis Sendiri
+      description: 'Tambah Cabang Baru Bisnis Sendiri - Folder: Manajemen Cabang (By Non - Super Admin)'
+      operationId: Manajemen_Cabang__By_Non___Super_Admin__Tambah_Cabang_Baru_Bisnis_Sendiri_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/outlets/{id}':
+    get:
+      tags:
+        - Manajemen Cabang (By Non - Super Admin)
+      summary: Lihat Detail Cabang Bisnis Sendiri
+      description: 'Lihat Detail Cabang Bisnis Sendiri - Folder: Manajemen Cabang (By Non - Super Admin)'
+      operationId: Manajemen_Cabang__By_Non___Super_Admin__Lihat_Detail_Cabang_Bisnis_Sendiri_get
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    patch:
+      tags:
+        - Manajemen Cabang (By Non - Super Admin)
+      summary: Edit Cabang Bisnis Sendiri
+      description: 'Edit Cabang Bisnis Sendiri - Folder: Manajemen Cabang (By Non - Super Admin)'
+      operationId: Manajemen_Cabang__By_Non___Super_Admin__Edit_Cabang_Bisnis_Sendiri_patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Cafe Kita Kemang
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Manajemen Cabang (By Non - Super Admin)
+      summary: Menghapus Cabang Bisnis Sendiri
+      description: 'Menghapus Cabang Bisnis Sendiri - Folder: Manajemen Cabang (By Non - Super Admin)'
+      operationId: Manajemen_Cabang__By_Non___Super_Admin__Menghapus_Cabang_Bisnis_Sendiri_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /superadmin/outlets:
+    get:
+      tags:
+        - Manajemen Cabang (By Super Admin)
+      summary: Lihat Semua Cabang
+      description: 'Lihat Semua Cabang - Folder: Manajemen Cabang (By Super Admin)'
+      operationId: Manajemen_Cabang__By_Super_Admin__Lihat_Semua_Cabang_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Manajemen Cabang (By Super Admin)
+      summary: Tambah Cabang Baru
+      description: 'Tambah Cabang Baru - Folder: Manajemen Cabang (By Super Admin)'
+      operationId: Manajemen_Cabang__By_Super_Admin__Tambah_Cabang_Baru_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/superadmin/outlets/{id}':
+    get:
+      tags:
+        - Manajemen Cabang (By Super Admin)
+      summary: LIhat Detail Sebuah Cabang
+      description: 'LIhat Detail Sebuah Cabang - Folder: Manajemen Cabang (By Super Admin)'
+      operationId: Manajemen_Cabang__By_Super_Admin__LIhat_Detail_Sebuah_Cabang_get
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    patch:
+      tags:
+        - Manajemen Cabang (By Super Admin)
+      summary: Edit Cabang
+      description: 'Edit Cabang - Folder: Manajemen Cabang (By Super Admin)'
+      operationId: Manajemen_Cabang__By_Super_Admin__Edit_Cabang_patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                address: Jl. Manunggal No 10
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Manajemen Cabang (By Super Admin)
+      summary: Hapus Cabang
+      description: 'Hapus Cabang - Folder: Manajemen Cabang (By Super Admin)'
+      operationId: Manajemen_Cabang__By_Super_Admin__Hapus_Cabang_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /staff:
+    post:
+      tags:
+        - Manajemen Karyawan (By Non - Super Admin)
+      summary: Buat Akun Karyawan Baru
+      description: 'Buat Akun Karyawan Baru - Folder: Manajemen Karyawan (By Non - Super Admin)'
+      operationId: Manajemen_Karyawan__By_Non___Super_Admin__Buat_Akun_Karyawan_Baru_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+        - Manajemen Karyawan (By Non - Super Admin)
+      summary: Lihat Daftar  Staff
+      description: 'Lihat Daftar  Staff - Folder: Manajemen Karyawan (By Non - Super Admin)'
+      operationId: Manajemen_Karyawan__By_Non___Super_Admin__Lihat_Daftar__Staff_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/staff/{id}':
+    patch:
+      tags:
+        - Manajemen Karyawan (By Non - Super Admin)
+      summary: Edit Data Karyawan
+      description: 'Edit Data Karyawan - Folder: Manajemen Karyawan (By Non - Super Admin)'
+      operationId: Manajemen_Karyawan__By_Non___Super_Admin__Edit_Data_Karyawan_patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Ani Kasir Senior
+                phone: 08111222999
+                status: ACTIVE
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Manajemen Karyawan (By Non - Super Admin)
+      summary: Delete Karyawan
+      description: 'Delete Karyawan - Folder: Manajemen Karyawan (By Non - Super Admin)'
+      operationId: Manajemen_Karyawan__By_Non___Super_Admin__Delete_Karyawan_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/staff/{id}/reset-password':
+    patch:
+      tags:
+        - Manajemen Karyawan (By Non - Super Admin)
+      summary: Reset-Password
+      description: 'Reset-Password - Folder: Manajemen Karyawan (By Non - Super Admin)'
+      operationId: Manajemen_Karyawan__By_Non___Super_Admin__Reset_Password_patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /superadmin/users:
+    post:
+      tags:
+        - Manajemen User (By Super Admin)
+      summary: Buat Akun User Baru (Tambah Admin)
+      description: 'Buat Akun User Baru (Tambah Admin) - Folder: Manajemen User (By Super Admin)'
+      operationId: Manajemen_User__By_Super_Admin__Buat_Akun_User_Baru__Tambah_Admin__post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+        - Manajemen User (By Super Admin)
+      summary: Lihat Daftar  User
+      description: 'Lihat Daftar  User - Folder: Manajemen User (By Super Admin)'
+      operationId: Manajemen_User__By_Super_Admin__Lihat_Daftar__User_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/superadmin/users/{id}':
+    patch:
+      tags:
+        - Manajemen User (By Super Admin)
+      summary: Edit Data User
+      description: 'Edit Data User - Folder: Manajemen User (By Super Admin)'
+      operationId: Manajemen_User__By_Super_Admin__Edit_Data_User_patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Ani Kasir Senior
+                phone: 08111222999
+                status: ACTIVE
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Manajemen User (By Super Admin)
+      summary: Delete User
+      description: 'Delete User - Folder: Manajemen User (By Super Admin)'
+      operationId: Manajemen_User__By_Super_Admin__Delete_User_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /superadmin/users/summary:
+    get:
+      tags:
+        - Manajemen User (By Super Admin)
+      summary: Ringkasan Statistik User
+      description: 'Ringkasan Statistik User - Folder: Manajemen User (By Super Admin)'
+      operationId: Manajemen_User__By_Super_Admin__Ringkasan_Statistik_User_get
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /superadmin/users/staff:
+    post:
+      tags:
+        - Manajemen User (By Super Admin)
+      summary: Tambah Staff Suatu Cabang
+      description: 'Tambah Staff Suatu Cabang - Folder: Manajemen User (By Super Admin)'
+      operationId: Manajemen_User__By_Super_Admin__Tambah_Staff_Suatu_Cabang_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /categories:
+    post:
+      tags:
+        - Category
+      summary: Tambah Category Baru
+      description: 'Tambah Category Baru - Folder: Category'
+      operationId: Category_Tambah_Category_Baru_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+        - Category
+      summary: LIhat Seluruh Category
+      description: 'LIhat Seluruh Category - Folder: Category'
+      operationId: Category_LIhat_Seluruh_Category_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/categories/{id}':
+    get:
+      tags:
+        - Category
+      summary: LIhat Category Tertentu
+      description: 'LIhat Category Tertentu - Folder: Category'
+      operationId: Category_LIhat_Category_Tertentu_get
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - Category
+      summary: Ubah Nama Category
+      description: 'Ubah Nama Category - Folder: Category'
+      operationId: Category_Ubah_Nama_Category_put
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Category
+      summary: Hapus Category
+      description: 'Hapus Category - Folder: Category'
+      operationId: Category_Hapus_Category_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /products:
+    post:
+      tags:
+        - Product
+      summary: Membuat Produk
+      description: 'Membuat Produk - Folder: Product'
+      operationId: Product_Membuat_Produk_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+        - Product
+      summary: Lihat Semua Product
+      description: 'Lihat Semua Product - Folder: Product'
+      operationId: Product_Lihat_Semua_Product_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/products/{id}':
+    get:
+      tags:
+        - Product
+      summary: Lihat Produk Tertentu
+      description: 'Lihat Produk Tertentu - Folder: Product'
+      operationId: Product_Lihat_Produk_Tertentu_get
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - Product
+      summary: Update Produk
+      description: 'Update Produk - Folder: Product'
+      operationId: Product_Update_Produk_put
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Product
+      summary: Hapus Product
+      description: 'Hapus Product - Folder: Product'
+      operationId: Product_Hapus_Product_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /roles:
+    get:
+      tags:
+        - Roles
+      summary: Lihat Role
+      description: 'Lihat Role - Folder: Roles'
+      operationId: Roles_Lihat_Role_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Roles
+      summary: Tambah Role Baru
+      description: 'Tambah Role Baru - Folder: Roles'
+      operationId: Roles_Tambah_Role_Baru_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Kasir
+                permissions:
+                  - MENU_POS
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/roles/{id}':
+    patch:
+      tags:
+        - Roles
+      summary: Edit Role
+      description: 'Edit Role - Folder: Roles'
+      operationId: Roles_Edit_Role_patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Roles
+      summary: Hapus Role
+      description: 'Hapus Role - Folder: Roles'
+      operationId: Roles_Hapus_Role_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /payment-methods:
+    get:
+      tags:
+        - Payment Method
+      summary: Lihat Payment Method Teredia
+      description: 'Lihat Payment Method Teredia - Folder: Payment Method'
+      operationId: Payment_Method_Lihat_Payment_Method_Teredia_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Payment Method
+      summary: Tambah Payment Method
+      description: 'Tambah Payment Method - Folder: Payment Method'
+      operationId: Payment_Method_Tambah_Payment_Method_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: QRIS Gopay
+                type: QRIS
+                details: Scan barcode di meja kasir
+                outletIds:
+                  - cmsh5gxed00013vxpha7kekhw
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/payment-methods/{id}':
+    patch:
+      tags:
+        - Payment Method
+      summary: Edit Payment Method
+      description: 'Edit Payment Method - Folder: Payment Method'
+      operationId: Payment_Method_Edit_Payment_Method_patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Payment Method
+      summary: Hapus  Payment Method
+      description: 'Hapus  Payment Method - Folder: Payment Method'
+      operationId: Payment_Method_Hapus__Payment_Method_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/outlets/{outletId}/payment-methods':
+    get:
+      tags:
+        - Payment Method
+      summary: Lihat Payment Method Cabang Tertentu
+      description: 'Lihat Payment Method Cabang Tertentu - Folder: Payment Method'
+      operationId: Payment_Method_Lihat_Payment_Method_Cabang_Tertentu_get
+      parameters:
+        - name: outletId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter outletId
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Payment Method
+      summary: Mengaktifkan satu metode spesifik ke dalam satu cabang
+      description: 'Mengaktifkan satu metode spesifik ke dalam satu cabang - Folder: Payment Method'
+      operationId: Payment_Method_Mengaktifkan_satu_metode_spesifik_ke_dalam_satu_cabang_post
+      parameters:
+        - name: outletId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter outletId
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/outlets/{outletId}/payment-methods/{id}':
+    delete:
+      tags:
+        - Payment Method
+      summary: Menonaktifkan (menyembunyikan) satu metode spesifik dari suatu cabang
+      description: 'Menonaktifkan (menyembunyikan) satu metode spesifik dari suatu cabang - Folder: Payment Method'
+      operationId: Payment_Method_Menonaktifkan__menyembunyikan__satu_metode_spesifik_dari_suatu_cabang_delete
+      parameters:
+        - name: outletId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter outletId
+          example: cmsg2rpep00013hsvb7cygs07
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /settings:
+    put:
+      tags:
+        - Pengaturan
+      summary: Update Konfigurasi Global (Super Admin)
+      description: 'Update Konfigurasi Global (Super Admin) - Folder: Pengaturan'
+      operationId: Pengaturan_Update_Konfigurasi_Global__Super_Admin__put
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                appName: Mitbiz Cloud POS
+                timezone: Asia/Jakarta
+                currency: IDR
+                defaultLanguage: id
+                logoUrl: 'https://cloudinary.com/mitbiz/logo.png'
+                emailNotification: admin@mitbiz.com
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+        - Pengaturan
+      summary: Ambil konfigurasi global
+      description: 'Ambil konfigurasi global - Folder: Pengaturan'
+      operationId: Pengaturan_Ambil_konfigurasi_global_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /admin/settings/business:
+    patch:
+      tags:
+        - Pengaturan
+      summary: Update Parsial Profil Toko (Admin/Staff w/ Permission)
+      description: 'Update Parsial Profil Toko (Admin/Staff w/ Permission) - Folder: Pengaturan'
+      operationId: Pengaturan_Update_Parsial_Profil_Toko__Admin_Staff_w__Permission__patch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+        - Pengaturan
+      summary: Ambil profil toko sendiri (Admin/Staff w/ Permission)
+      description: 'Ambil profil toko sendiri (Admin/Staff w/ Permission) - Folder: Pengaturan'
+      operationId: Pengaturan_Ambil_profil_toko_sendiri__Admin_Staff_w__Permission__get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /stocks:
+    get:
+      tags:
+        - Stock
+      summary: Lihat Daftar Stok Saat Ini
+      description: 'Lihat Daftar Stok Saat Ini - Folder: Stock'
+      operationId: Stock_Lihat_Daftar_Stok_Saat_Ini_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /stocks/adjust:
+    patch:
+      tags:
+        - Stock
+      summary: Mutasi / Penyesuaian Stok
+      description: 'Mutasi / Penyesuaian Stok - Folder: Stock'
+      operationId: Stock_Mutasi___Penyesuaian_Stok_patch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+        - Stock
+      summary: Riwayat Mutasi Stok
+      description: 'Riwayat Mutasi Stok - Folder: Stock'
+      operationId: Stock_Riwayat_Mutasi_Stok_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /shifts/open:
+    post:
+      tags:
+        - Shift
+      summary: Buka Shift (Open Shift) - by Kasir (MENU_POS)
+      description: 'Buka Shift (Open Shift) - by Kasir (MENU_POS) - Folder: Shift'
+      operationId: Shift_Buka_Shift__Open_Shift____by_Kasir__MENU_POS__post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /shifts/active:
+    get:
+      tags:
+        - Shift
+      summary: Cek Shift Aktif (Active Shift) - by Kasir (MENU_POS)
+      description: 'Cek Shift Aktif (Active Shift) - by Kasir (MENU_POS) - Folder: Shift'
+      operationId: Shift_Cek_Shift_Aktif__Active_Shift____by_Kasir__MENU_POS__get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/shifts/{id}/close':
+    patch:
+      tags:
+        - Shift
+      summary: Tutup Shift (Close Shift) - Kasir (MENU_POS)
+      description: 'Tutup Shift (Close Shift) - Kasir (MENU_POS) - Folder: Shift'
+      operationId: Shift_Tutup_Shift__Close_Shift____Kasir__MENU_POS__patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /shifts:
+    get:
+      tags:
+        - Shift
+      summary: Riwayat Laporan Shift - Hybrid
+      description: 'Riwayat Laporan Shift - Hybrid - Folder: Shift'
+      operationId: Shift_Riwayat_Laporan_Shift___Hybrid_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /shifts/today-stats:
+    get:
+      tags:
+        - Shift
+      summary: Statistik Shift Hari Ini - by Menu Side Bar Shift Kasir
+      description: 'Statistik Shift Hari Ini - by Menu Side Bar Shift Kasir - Folder: Shift'
+      operationId: Shift_Statistik_Shift_Hari_Ini___by_Menu_Side_Bar_Shift_Kasir_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /shifts/cashiers-status:
+    get:
+      tags:
+        - Shift
+      summary: Daftar kasir & status shiftnya
+      description: 'Daftar kasir & status shiftnya - Folder: Shift'
+      operationId: Shift_Daftar_kasir___status_shiftnya_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /shifts/admin/force-open:
+    post:
+      tags:
+        - Shift
+      summary: Buka Shift Untuk Kasir - by Menu Side Bar Shift Kasir
+      description: 'Buka Shift Untuk Kasir - by Menu Side Bar Shift Kasir - Folder: Shift'
+      operationId: Shift_Buka_Shift_Untuk_Kasir___by_Menu_Side_Bar_Shift_Kasir_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/shifts/{id}/admin/force-close':
+    patch:
+      tags:
+        - Shift
+      summary: Tutup Shift Milik Kasir - by Menu Side Bar Shift Kasir
+      description: 'Tutup Shift Milik Kasir - by Menu Side Bar Shift Kasir - Folder: Shift'
+      operationId: Shift_Tutup_Shift_Milik_Kasir___by_Menu_Side_Bar_Shift_Kasir_patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /transactions:
+    post:
+      tags:
+        - Transaction
+      summary: Buat Transaksi (BAYAR NANTI)
+      description: 'Buat Transaksi (BAYAR NANTI) - Folder: Transaction'
+      operationId: Transaction_Buat_Transaksi__BAYAR_NANTI__post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Contoh Data
+                description: Keterangan tambahan
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+        - Transaction
+      summary: RIwayat Transaksi
+      description: 'RIwayat Transaksi - Folder: Transaction'
+      operationId: Transaction_RIwayat_Transaksi_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/transactions/{id}/pay':
+    patch:
+      tags:
+        - Transaction
+      summary: Melunasi Tagihan
+      description: 'Melunasi Tagihan - Folder: Transaction'
+      operationId: Transaction_Melunasi_Tagihan_patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                paymentMethodId: cmsod2jnz0000m3dv0mwx4srk
+                amountPaid: 50000
+                notes: Dibayar oleh temannya
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  '/transactions/{id}':
+    delete:
+      tags:
+        - Transaction
+      summary: Batalkan Transaksi
+      description: 'Batalkan Transaksi - Folder: Transaction'
+      operationId: Transaction_Batalkan_Transaksi_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+        - Transaction
+      summary: Detail Transaksi
+      description: 'Detail Transaksi - Folder: Transaction'
+      operationId: Transaction_Detail_Transaksi_get
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID parameter id
+          example: cmsg2rpep00013hsvb7cygs07
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /dashboard/superadmin:
+    get:
+      tags:
+        - Dashboard
+      summary: Dashboard Super Admin
+      description: 'Dashboard Super Admin - Folder: Dashboard'
+      operationId: Dashboard_Dashboard_Super_Admin_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /dashboard/admin:
+    get:
+      tags:
+        - Dashboard
+      summary: Dashboard Admin
+      description: 'Dashboard Admin - Folder: Dashboard'
+      operationId: Dashboard_Dashboard_Admin_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /dashboard/pos:
+    get:
+      tags:
+        - Dashboard
+      summary: Dashboard POS
+      description: 'Dashboard POS - Folder: Dashboard'
+      operationId: Dashboard_Dashboard_POS_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /reports/sales/superadmin:
+    get:
+      tags:
+        - Laporan
+      summary: Laporan Penjualan (Non - Super Admin)
+      description: 'Laporan Penjualan (Non - Super Admin) - Folder: Laporan'
+      operationId: Laporan_Laporan_Penjualan__Non___Super_Admin__get
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter parameter startDate
+          example: '2026-08-01'
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter parameter endDate
+          example: '2026-08-31'
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /reports/sales/export:
+    get:
+      tags:
+        - Laporan
+      summary: Export Laporan (Unduhan)
+      description: 'Export Laporan (Unduhan) - Folder: Laporan'
+      operationId: Laporan_Export_Laporan__Unduhan__get
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /reports/products/superadmin:
+    get:
+      tags:
+        - Laporan
+      summary: Laporan Produk Terlaris (Non - Super Admin)
+      description: 'Laporan Produk Terlaris (Non - Super Admin) - Folder: Laporan'
+      operationId: Laporan_Laporan_Produk_Terlaris__Non___Super_Admin__get
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter parameter startDate
+          example: '2026-08-01'
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter parameter endDate
+          example: '2026-08-31'
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /reports/stocks:
+    get:
+      tags:
+        - Laporan
+      summary: Laporan Stok
+      description: 'Laporan Stok - Folder: Laporan'
+      operationId: Laporan_Laporan_Stok_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Halaman data
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+          example: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian
+          example: ''
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+  /reports/export/pdf:
+    get:
+      tags:
+        - Laporan
+      summary: Laporan Format Export/PDF (Untuk Unduhan File)
+      description: 'Laporan Format Export/PDF (Untuk Unduhan File) - Folder: Laporan'
+      operationId: Laporan_Laporan_Format_Export_PDF__Untuk_Unduhan_File__get
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Bad Request / Validasi Gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Token JWT diisi pada Authorization header (Format: Bearer <token>)'
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Berhasil melakukan operasi
+        data:
+          type: object
+          nullable: true
+        total:
+          type: integer
+          example: 10
+    ApiErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Pesan kesalahan
+        errors:
+          type: array
+          items:
+            type: object
+          nullable: true
