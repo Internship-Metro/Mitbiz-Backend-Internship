@@ -342,6 +342,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+  /auth/profile:
     get:
       tags:
         - Auth
@@ -403,6 +404,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+      security:
+        - bearerAuth: []
   /auth/change-password:
     patch:
       tags:
@@ -3208,6 +3211,7 @@ paths:
                 $ref: '#/components/schemas/ApiErrorResponse'
       security:
         - bearerAuth: []
+  /stocks/adjustments:
     get:
       tags:
         - Stock
@@ -4196,7 +4200,7 @@ paths:
                 $ref: '#/components/schemas/ApiErrorResponse'
       security:
         - bearerAuth: []
-  /reports/sales/superadmin:
+  /reports/sales:
     get:
       tags:
         - Laporan
@@ -4291,7 +4295,7 @@ paths:
                 $ref: '#/components/schemas/ApiErrorResponse'
       security:
         - bearerAuth: []
-  /reports/products/superadmin:
+  /reports/products:
     get:
       tags:
         - Laporan
