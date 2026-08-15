@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const getStocksQuerySchema = z.object({
   search: z.string().optional(),
+  categoryId: z.string().optional(),
   outletId: z.string().optional(),
   lowStockOnly: z
     .enum(['true', 'false'])
@@ -21,6 +22,7 @@ export type GetStocksQueryDto = z.infer<typeof getStocksQuerySchema>;
 
 export const getStockAdjustmentsQuerySchema = z.object({
   search: z.string().optional(),
+  categoryId: z.string().optional(),
   outletId: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),

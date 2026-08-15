@@ -44,6 +44,7 @@ export class StockController {
       const userOutletId = req.user!.outletId || undefined;
       const businessId = req.user!.businessId || undefined;
       const userId = req.user!.userId;
+      const role = req.user!.role;
 
       // outletId wajib ada di body (dipilih dari dropdown Cabang di UI)
       const data = adjustStockSchema.parse(req.body);
@@ -52,6 +53,7 @@ export class StockController {
         userOutletId as string | undefined,
         businessId as string | undefined,
         userId as string,
+        role as string,
         data
       );
       return sendSuccess(res, result, 'Berhasil melakukan penyesuaian stok', 201);

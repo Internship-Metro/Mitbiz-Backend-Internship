@@ -5,7 +5,7 @@ export class StockRepository {
   /**
    * Mengambil daftar stok untuk suatu outlet atau semua outlet dalam satu bisnis.
    */
-  async findAll(outletId: string | undefined, businessId: string | undefined, search?: string, lowStockOnly?: boolean) {
+  async findAll(outletId: string | undefined, businessId: string | undefined, search?: string, categoryId?: string, lowStockOnly?: boolean) {
     const where: Prisma.StockWhereInput = {};
 
     if (outletId) {
@@ -14,13 +14,17 @@ export class StockRepository {
       where.outlet = { businessId };
     }
 
-    if (search) {
-      where.product = {
-        OR: [
+    if (search || categoryId) {
+      where.product = {};
+      if (search) {
+        where.product.OR = [
           { name: { contains: search, mode: 'insensitive' } },
           { sku: { contains: search, mode: 'insensitive' } },
-        ],
-      };
+        ];
+      }
+      if (categoryId) {
+        where.product.categoryId = categoryId;
+      }
     }
 
     const stocks = await prisma.stock.findMany({
@@ -120,6 +124,7 @@ export class StockRepository {
     skip: number,
     take: number,
     search?: string,
+    categoryId?: string,
     startDate?: string,
     endDate?: string
   ) {
@@ -130,13 +135,17 @@ export class StockRepository {
       where.outlet = { businessId };
     }
 
-    if (search) {
-      where.product = {
-        OR: [
+    if (search || categoryId) {
+      where.product = {};
+      if (search) {
+        where.product.OR = [
           { name: { contains: search, mode: 'insensitive' } },
           { sku: { contains: search, mode: 'insensitive' } },
-        ],
-      };
+        ];
+      }
+      if (categoryId) {
+        where.product.categoryId = categoryId;
+      }
     }
 
     if (startDate || endDate) {

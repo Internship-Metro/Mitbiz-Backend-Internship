@@ -9,10 +9,10 @@ export class StockService {
    * Mengambil semua stok di suatu outlet atau semua outlet dalam satu bisnis.
    */
   async getStocks(userOutletId: string | undefined, businessId: string | undefined, query: any) {
-    const { search, lowStockOnly, outletId } = query;
+    const { search, categoryId, lowStockOnly, outletId } = query;
     const targetOutletId = userOutletId || outletId;
 
-    const stocks = await stockRepository.findAll(targetOutletId, businessId, search, lowStockOnly);
+    const stocks = await stockRepository.findAll(targetOutletId, businessId, search, categoryId, lowStockOnly);
     return stocks;
   }
 
@@ -56,13 +56,14 @@ export class StockService {
     userOutletId: string | undefined,
     businessId: string | undefined,
     userId: string,
+    role: string,
     data: AdjustStockDto
   ) {
     const { outletId, productId, type, quantity, notes } = data;
 
     // Jika user terikat cabang (Kasir/Staff), pastikan mereka tidak adjust cabang lain
     if (userOutletId && userOutletId !== outletId) {
-      throw new AppError('Akses ditolak: Anda hanya bisa melakukan penyesuaian stok di cabang Anda sendiri', 403);
+      throw new AppError(`Akses ditolak: Anda [${role}] hanya bisa melakukan penyesuaian stok di cabang Anda sendiri`, 403);
     }
 
     // 1. Cek stok produk di cabang yang dipilih
@@ -111,7 +112,7 @@ export class StockService {
    * Mengambil riwayat penyesuaian untuk laporan.
    */
   async getAdjustments(userOutletId: string | undefined, businessId: string | undefined, query: GetStockAdjustmentsQueryDto) {
-    const { search, startDate, endDate, page = 1, limit = 10, outletId } = query;
+    const { search, categoryId, startDate, endDate, page = 1, limit = 10, outletId } = query;
     const skip = (page - 1) * limit;
 
     const targetOutletId = userOutletId || outletId;
@@ -122,6 +123,7 @@ export class StockService {
       skip,
       limit,
       search,
+      categoryId,
       startDate,
       endDate
     );
