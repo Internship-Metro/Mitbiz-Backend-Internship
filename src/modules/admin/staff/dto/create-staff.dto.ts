@@ -13,7 +13,7 @@ export const CreateStaffDto = z.object({
     .min(8, 'Nomor telepon minimal 8 digit')
     .max(20, 'Nomor telepon maksimal 20 digit')
     .optional(),
-  roleId: z.string().cuid('roleId harus berupa CUID yang valid').optional(),
+  roleId: z.string().cuid('roleId harus berupa CUID yang valid'),
   outletId: z.string().cuid('outletId harus berupa CUID yang valid').optional(),
 });
 
