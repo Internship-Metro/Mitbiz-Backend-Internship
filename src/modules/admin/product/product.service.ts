@@ -137,7 +137,25 @@ export class ProductService {
     // 1. Check if product exists and belongs to business
     await this.getProductById(id, businessId);
 
-    // 2. Soft delete the product (image is kept in Cloudinary as per agreement)
+    // 2. Cek apakah masih ada stok > 0 di cabang manapun
+    const activeStock = await prisma.stock.findFirst({
+      where: {
+        productId: id,
+        quantity: { gt: 0 },
+      },
+      include: {
+        outlet: { select: { name: true } },
+      },
+    });
+
+    if (activeStock) {
+      throw new AppError(
+        `Produk tidak bisa dihapus karena masih memiliki stok (${activeStock.quantity} pcs) di cabang "${activeStock.outlet.name}". Kosongkan stok terlebih dahulu.`,
+        400
+      );
+    }
+
+    // 3. Soft delete the product (image is kept in Cloudinary as per agreement)
     return this.repository.delete(id);
   }
 }
