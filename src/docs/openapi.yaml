@@ -1672,55 +1672,7 @@ paths:
                 $ref: "#/components/schemas/ApiErrorResponse"
       security:
         - bearerAuth: []
-  /superadmin/users/staff:
-    post:
-      tags:
-        - Manajemen User (By Super Admin)
-      summary: Tambah Staff Suatu Cabang
-      description: "Tambah Staff Suatu Cabang - Folder: Manajemen User (By Super Admin)"
-      operationId: Manajemen_User__By_Super_Admin__Tambah_Staff_Suatu_Cabang_post
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                name: Contoh Data
-                description: Keterangan tambahan
-      responses:
-        "200":
-          description: Berhasil
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
-          description: Bad Request / Validasi Gagal
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
-        "401":
-          description: Unauthorized / Token Tidak Valid
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
-        "403":
-          description: Forbidden / Hak Akses Ditolak
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
-        "404":
-          description: Data Tidak Ditemukan
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
-      security:
-        - bearerAuth: []
+
   /categories:
     post:
       tags:
