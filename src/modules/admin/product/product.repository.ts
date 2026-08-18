@@ -25,10 +25,12 @@ export class ProductRepository {
       ...(categoryId && { categoryId }),
       ...(status && { status }),
       // Jika dipanggil oleh kasir (outletId ada), hanya tampilkan produk
-      // yang pernah didaftarkan ke cabang tersebut (ada record Stock-nya)
+      // yang pernah didaftarkan stoknya (quantity > 0) di cabang tersebut.
+      // Catatan: saat produk dibuat, semua outlet dapat record Stock qty=0 secara otomatis,
+      // sehingga filter harus menggunakan quantity > 0 bukan hanya keberadaan record Stock.
       ...(outletId && {
         stocks: {
-          some: { outletId },
+          some: { outletId, quantity: { gt: 0 } },
         },
       }),
     };
