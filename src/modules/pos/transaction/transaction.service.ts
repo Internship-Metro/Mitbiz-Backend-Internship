@@ -47,11 +47,12 @@ export class TransactionService {
       include: { business: true },
     });
     if (!outlet) throw new AppError('Outlet tidak ditemukan', 404);
-    
+
     const isTaxEnabled = outlet.business.isTaxEnabled;
     const taxPercentage = outlet.business.taxPercentage || 0;
 
     // 3. Ambil data produk aktual (Snapshotting harga & validasi stok)
+    // Hanya tampilkan produk yang pernah ada di cabang ini (ada record Stock untuk outletId ini)
     let subtotal = 0;
     const snapshotItems = [];
 
@@ -70,18 +71,24 @@ export class TransactionService {
       if (!product || product.businessId !== outlet.businessId) {
         throw new AppError(`Produk dengan ID ${itemDto.productId} tidak ditemukan di bisnis ini`, 404);
       }
-      
+
       // Ambil stok khusus untuk outlet ini
       const stockForOutlet = product.stocks[0];
-      if (!stockForOutlet || stockForOutlet.quantity < itemDto.quantity) {
-        throw new AppError(`Stok produk ${product.name} tidak mencukupi (Tersisa: ${stockForOutlet?.quantity || 0})`, 400);
+      // Validasi: produk harus pernah ada di cabang ini (ada record Stock)
+      if (!stockForOutlet) {
+        throw new AppError(`Produk ${product.name} tidak tersedia di cabang ini`, 400);
+      }
+      if (stockForOutlet.quantity < itemDto.quantity) {
+        throw new AppError(`Stok produk ${product.name} tidak mencukupi (Tersisa: ${stockForOutlet.quantity})`, 400);
       }
 
-      // Hitung subtotal per item: (harga * qty) - diskon
-      const itemSubtotal = (product.price * itemDto.quantity) - (product.discount || 0);
+      // Hitung subtotal per item: (harga * qty) - diskon produk (nominal)
+      // Diskon produk disimpan sebagai persentase (0-100), konversi ke nominal
+      const discountNominal = Math.round((product.price * (product.discount || 0)) / 100);
+      const itemSubtotal = (product.price * itemDto.quantity) - (discountNominal * itemDto.quantity);
       subtotal += itemSubtotal;
 
-      // Buat snapshot (harga & diskon diambil dari database, bukan dari input kasir untuk mencegah kecurangan)
+      // Buat snapshot (harga & diskon diambil dari database, bukan dari input kasir)
       snapshotItems.push({
         productId: product.id,
         productName: product.name,
@@ -94,17 +101,9 @@ export class TransactionService {
     }
 
     // 4. Kalkulasi Total Akhir (Backend as Source of Truth)
-    const discountAmount = payload.discountAmount || 0;
-    const discountedSubtotal = subtotal - discountAmount;
-    
-    // Pastikan tidak negatif
-    if (discountedSubtotal < 0) {
-      throw new AppError('Diskon tidak boleh lebih besar dari subtotal', 400);
-    }
-
-    // Hitung pajak
-    const taxAmount = isTaxEnabled ? Math.round((discountedSubtotal * taxPercentage) / 100) : 0;
-    const totalAmount = discountedSubtotal + taxAmount;
+    // Total = subtotal + pajak (tidak ada diskon per-nota)
+    const taxAmount = isTaxEnabled ? Math.round((subtotal * taxPercentage) / 100) : 0;
+    const totalAmount = subtotal + taxAmount;
 
     // 5. Tentukan Status (PENDING atau COMPLETED)
     const amountPaid = payload.amountPaid || 0;
@@ -138,7 +137,6 @@ export class TransactionService {
       tableNumber: payload.tableNumber,
       paymentMethodId,
       subtotal,
-      discountAmount,
       taxAmount,
       totalAmount,
       amountPaid,

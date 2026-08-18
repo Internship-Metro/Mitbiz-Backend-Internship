@@ -64,7 +64,6 @@ export const dashboardService = {
           openedAt: activeShift.openedAt,
           outletId: activeShift.outletId,
           outletName: activeShift.outlet.name,
-          openingCash: activeShift.openingCash,
           notes: activeShift.notes,
         },
         stats,

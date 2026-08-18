@@ -7,7 +7,7 @@ import { PaymentMethodType } from '@prisma/client';
 
 export class ShiftService {
   /**
-   * Buka shift kasir
+   * Buka shift kasir (tanpa modal awal)
    */
   async openShift(outletId: string, kasirId: string, data: OpenShiftDto) {
     // 1. Cek apakah kasir ini masih punya shift aktif
@@ -17,11 +17,11 @@ export class ShiftService {
     }
 
     // 2. Buka shift baru
-    return shiftRepository.openShift(outletId, kasirId, data.openingCash);
+    return shiftRepository.openShift(outletId, kasirId, data.notes);
   }
 
   /**
-   * Tutup shift kasir
+   * Tutup shift kasir (tanpa closing cash)
    */
   async closeShift(shiftId: string, kasirId: string, data: CloseShiftDto) {
     // 1. Cek ketersediaan shift
@@ -41,11 +41,12 @@ export class ShiftService {
     }
 
     // 4. Proses tutup shift
-    return shiftRepository.closeShift(shiftId, data.closingCash ?? 0, data.notes);
+    return shiftRepository.closeShift(shiftId, data.notes);
   }
 
   /**
    * Ambil shift yang sedang aktif untuk kasir saat ini
+   * Menghitung: Uang Masuk Hari Ini, Total Pajak, Total Transaksi
    */
   async getActiveShift(kasirId: string) {
     const shift = await shiftRepository.getActiveShift(kasirId);
@@ -56,38 +57,33 @@ export class ShiftService {
     let totalTransactionsCount = 0;
     let totalRevenue = 0;
     let cashRevenue = 0;
-    let totalDiscount = 0;
     let totalTax = 0;
 
     shift.transactions?.forEach((trx: any) => {
       totalTransactionsCount++;
       totalRevenue += trx.totalAmount;
-      totalDiscount += trx.discountAmount;
       totalTax += trx.taxAmount;
-      
+
       if (trx.paymentMethod?.type === PaymentMethodType.CASH) {
         cashRevenue += trx.totalAmount;
       }
     });
 
-    const expectedDrawer = shift.openingCash + cashRevenue;
     const { transactions, ...shiftData } = shift;
 
     return {
       ...shiftData,
       summary: {
         totalTransactionsCount,
-        totalRevenue,
+        totalRevenue,   // Uang Masuk: total semua transaksi COMPLETED di shift ini
         cashRevenue,
-        totalDiscount,
         totalTax,
-        expectedDrawer
       }
     };
   }
 
   /**
-   * Ambil riwayat shift untuk Admin, dilengkapi dengan perhitungan total transaksi dan selisih
+   * Ambil riwayat shift untuk Admin, dilengkapi dengan perhitungan total transaksi
    */
   async getShiftHistory(outletId: string, page: number, limit: number) {
     const { data, total } = await shiftRepository.findAll({ outletId, page, limit });
@@ -97,28 +93,19 @@ export class ShiftService {
       let totalTransactionsCount = 0;
       let totalRevenue = 0;
       let cashRevenue = 0;
-      let totalDiscount = 0;
       let totalTax = 0;
 
       // Hitung dari relasi transaksi
       shift.transactions.forEach((trx: any) => {
         totalTransactionsCount++;
         totalRevenue += trx.totalAmount;
-        totalDiscount += trx.discountAmount;
         totalTax += trx.taxAmount;
-        
+
         // Cek jika pembayarannya TUNAI
         if (trx.paymentMethod?.type === PaymentMethodType.CASH) {
           cashRevenue += trx.totalAmount;
         }
       });
-
-      // Ekspektasi fisik di laci = Modal Awal + Total Penjualan Tunai
-      const expectedDrawer = shift.openingCash + cashRevenue;
-
-      // Selisih = Kas Akhir (Fisik) - Ekspektasi Laci
-      // Jika shift belum ditutup (closingCash = null), selisih tidak dihitung
-      const selisih = shift.closingCash !== null ? shift.closingCash - expectedDrawer : null;
 
       // Buang array transactions dari response akhir agar rapi
       const { transactions, ...shiftData } = shift;
@@ -129,10 +116,7 @@ export class ShiftService {
           totalTransactionsCount,
           totalRevenue,
           cashRevenue,
-          totalDiscount,
           totalTax,
-          expectedDrawer,
-          selisih,
         },
       };
     });
@@ -161,15 +145,15 @@ export class ShiftService {
     if (!shift) {
       throw new AppError('Data shift tidak ditemukan', 404);
     }
-    
+
     if (shift.closedAt) {
       throw new AppError('Shift ini sudah ditutup', 400);
     }
 
-    // Force close: kita tambahkan catatan otomatis bahwa ini ditutup paksa oleh admin jika notes kosong
+    // Force close: tambahkan catatan otomatis bahwa ini ditutup paksa oleh admin jika notes kosong
     const finalNotes = dto.notes || `[FORCE CLOSE OLEH ADMIN]`;
 
-    const closedShift = await shiftRepository.closeShift(shiftId, dto.closingCash ?? 0, finalNotes);
+    const closedShift = await shiftRepository.closeShift(shiftId, finalNotes);
     return closedShift;
   }
 }

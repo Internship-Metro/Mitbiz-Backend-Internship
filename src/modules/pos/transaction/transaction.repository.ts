@@ -12,7 +12,6 @@ export interface CreateTransactionInput {
   tableNumber?: string;
   paymentMethodId?: string;
   subtotal: number;
-  discountAmount: number;
   taxAmount: number;
   totalAmount: number;
   amountPaid: number;
@@ -49,7 +48,6 @@ export class TransactionRepository {
           customerName: data.customerName,
           tableNumber: data.tableNumber,
           subtotal: data.subtotal,
-          discountAmount: data.discountAmount,
           taxAmount: data.taxAmount,
           totalAmount: data.totalAmount,
           amountPaid: data.amountPaid,

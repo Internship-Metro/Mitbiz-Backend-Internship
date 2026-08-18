@@ -10,16 +10,14 @@ export const dashboardRepository = {
   // ==============================================================
 
   /**
-   * Ambil statistik shift aktif kasir (Diskon & Pajak hari ini).
-   * Digunakan di dashboard kasir ketika shift aktif tapi belum ada transaksi open,
-   * atau sebagai ringkasan di atas "Table Management".
+   * Ambil statistik shift aktif kasir (Uang Masuk & Pajak hari ini).
+   * Digunakan di dashboard kasir ketika shift aktif.
    */
   async getStaffShiftStats(shiftId: string) {
     const aggregations = await prisma.transaction.aggregate({
       where: { shiftId, status: 'COMPLETED' },
       _count: { id: true },
       _sum: {
-        discountAmount: true,
         taxAmount: true,
         totalAmount: true,
       },
@@ -27,9 +25,8 @@ export const dashboardRepository = {
 
     return {
       totalTransaksi: aggregations._count.id || 0,
-      diskonDiberikan: Number(aggregations._sum.discountAmount || 0),
+      uangMasukHariIni: Number(aggregations._sum.totalAmount || 0),
       totalPajak: Number(aggregations._sum.taxAmount || 0),
-      totalPendapatan: Number(aggregations._sum.totalAmount || 0),
     };
   },
 

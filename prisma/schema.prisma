@@ -150,10 +150,6 @@ model Business {
   address           String? // Alamat fisik kantor pusat / bisnis utama (opsional)
   logoUrl           String? // URL gambar logo bisnis yang diupload ke cloud storage
   status            BusinessStatus @default(ACTIVE) // Status bisnis: ACTIVE / INACTIVE / SUSPENDED
-  isDiscountEnabled Boolean        @default(false) // Apakah admin mengizinkan diskon kasir
-  maxDiscount       Int? // Batas maksimal diskon yang diizinkan (%)
-  maxDiscountNominal Int? // Maksimal Nominal Diskon (Rp)
-  discountProductIds String[] // Daftar ID produk yang diizinkan diskon
   isTaxEnabled      Boolean        @default(false) // Apakah transaksi dikenakan pajak
   taxPercentage     Float? // Persentase pajak global
   createdAt         DateTime       @default(now()) // Waktu pertama kali bisnis didaftarkan ke platform
@@ -376,8 +372,6 @@ model Shift {
   kasirId     String // FK ke User — kasir mana yang menjalankan shift ini
   openedAt    DateTime  @default(now()) // Waktu shift dibuka / kasir mulai bekerja
   closedAt    DateTime? // Waktu shift ditutup — null berarti shift masih aktif/berjalan
-  openingCash Int       @default(0) // Jumlah uang kas awal saat shift dibuka (modal kasir)
-  closingCash Int? // Jumlah total uang kas saat shift ditutup — null jika belum tutup
   notes       String? // Catatan tambahan dari kasir saat membuka/menutup shift (opsional)
   createdAt   DateTime  @default(now()) // Waktu record shift ini dibuat di database
   updatedAt   DateTime  @updatedAt // Waktu terakhir data shift diubah
@@ -559,10 +553,9 @@ model Transaction {
   orderType       OrderType         @default(DINE_IN) // Tipe pesanan: DINE_IN (makan di tempat) atau TAKE_AWAY (dibawa pulang)
   customerName    String? // Nama pelanggan (untuk Dine In)
   tableNumber     String? // Nomor meja (untuk Dine In)
-  subtotal        Int // Total harga semua item sebelum diskon dan pajak diterapkan (Rupiah)
-  discountAmount  Int               @default(0) // Jumlah potongan diskon keseluruhan transaksi dalam Rupiah
+  subtotal        Int // Total harga semua item sebelum pajak diterapkan (Rupiah)
   taxAmount       Int               @default(0) // Jumlah pajak yang dikenakan (e.g. PPN 12%) dalam Rupiah
-  totalAmount     Int // Total akhir yang harus dibayar pelanggan (subtotal - diskon + pajak)
+  totalAmount     Int // Total akhir yang harus dibayar pelanggan (subtotal + pajak)
   amountPaid      Int               @default(0) // Jumlah uang yang diterima dari pelanggan (0 jika Open Bill / PENDING)
   changeAmount    Int               @default(0) // Kembalian yang diberikan ke pelanggan (amountPaid - totalAmount)
   notes           String? // Catatan tambahan dari kasir untuk transaksi ini (opsional)

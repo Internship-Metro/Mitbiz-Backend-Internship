@@ -5,10 +5,6 @@ export const updateBusinessSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email({ message: 'Format email tidak valid' }).optional(),
   address: z.string().optional(),
-  isDiscountEnabled: z.boolean().optional(),
-  maxDiscount: z.number().min(0).max(100).optional(),
-  maxDiscountNominal: z.number().min(0).optional(),
-  discountProductIds: z.array(z.string()).optional(),
   isTaxEnabled: z.boolean().optional(),
   taxPercentage: z
     .number()

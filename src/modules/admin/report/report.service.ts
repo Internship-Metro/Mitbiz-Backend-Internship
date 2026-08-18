@@ -37,7 +37,7 @@ export const reportService = {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Laporan Penjualan');
 
-    worksheet.mergeCells('A1', 'H1');
+    worksheet.mergeCells('A1', 'G1');
     worksheet.getCell('A1').value = `LAPORAN PENJUALAN (${startDate} - ${endDate})`;
     worksheet.getCell('A1').font = { size: 16, bold: true };
     worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
@@ -45,7 +45,7 @@ export const reportService = {
     worksheet.addRow([]); // empty row
 
     const headerRow = worksheet.addRow([
-      'Tanggal', 'No Invoice', 'Cabang', 'Kasir', 'Metode Bayar', 'Subtotal', 'Diskon', 'Total'
+      'Tanggal', 'No Invoice', 'Cabang', 'Kasir', 'Metode Bayar', 'Subtotal', 'Total'
     ]);
 
     headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -74,13 +74,11 @@ export const reportService = {
         trx.kasir?.name || '-',
         trx.paymentMethod?.name || trx.orderType,
         trx.subtotal,
-        trx.discountAmount,
         trx.totalAmount
       ]);
 
       row.getCell(6).numFmt = 'Rp #,##0';
       row.getCell(7).numFmt = 'Rp #,##0';
-      row.getCell(8).numFmt = 'Rp #,##0';
 
       row.eachCell((cell) => {
         cell.border = {
@@ -93,13 +91,13 @@ export const reportService = {
     });
 
     worksheet.addRow([]);
-    const summaryRow = worksheet.addRow(['', '', '', '', '', '', 'TOTAL PENJUALAN', totalPenjualan]);
+    const summaryRow = worksheet.addRow(['', '', '', '', '', 'TOTAL PENJUALAN', totalPenjualan]);
     summaryRow.font = { bold: true };
-    summaryRow.getCell(8).numFmt = 'Rp #,##0';
+    summaryRow.getCell(7).numFmt = 'Rp #,##0';
 
     worksheet.columns = [
       { width: 15 }, { width: 20 }, { width: 25 }, { width: 20 },
-      { width: 15 }, { width: 15 }, { width: 15 }, { width: 20 }
+      { width: 15 }, { width: 15 }, { width: 20 }
     ];
 
     const buffer = await workbook.xlsx.writeBuffer();

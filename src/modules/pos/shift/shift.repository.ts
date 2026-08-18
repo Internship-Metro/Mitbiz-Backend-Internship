@@ -19,7 +19,6 @@ export class ShiftRepository {
           },
           select: {
             totalAmount: true,
-            discountAmount: true,
             taxAmount: true,
             paymentMethod: {
               select: { type: true },
@@ -31,26 +30,25 @@ export class ShiftRepository {
   }
 
   /**
-   * Buka shift baru
+   * Buka shift baru (tanpa opening cash)
    */
-  async openShift(outletId: string, kasirId: string, openingCash: number): Promise<Shift> {
+  async openShift(outletId: string, kasirId: string, notes?: string): Promise<Shift> {
     return prisma.shift.create({
       data: {
         outletId,
         kasirId,
-        openingCash,
+        notes,
       },
     });
   }
 
   /**
-   * Tutup shift (Update closedAt dan hasil kas akhir)
+   * Tutup shift (Update closedAt dan notes)
    */
-  async closeShift(id: string, closingCash: number, notes?: string): Promise<Shift> {
+  async closeShift(id: string, notes?: string): Promise<Shift> {
     return prisma.shift.update({
       where: { id },
       data: {
-        closingCash,
         notes,
         closedAt: new Date(),
       },
@@ -88,7 +86,6 @@ export class ShiftRepository {
             },
             select: {
               totalAmount: true,
-              discountAmount: true,
               taxAmount: true,
               paymentMethod: {
                 select: { type: true },
@@ -140,10 +137,10 @@ export class ShiftRepository {
 
     // Hitung total penjualan hari ini dari transaksi yang COMPLETED
     const todayTransactions = await prisma.transaction.aggregate({
-      where: { 
-        outletId, 
+      where: {
+        outletId,
         status: 'COMPLETED',
-        createdAt: { gte: today } 
+        createdAt: { gte: today }
       },
       _sum: {
         totalAmount: true,
@@ -163,9 +160,9 @@ export class ShiftRepository {
   async getCashiersWithShiftStatus(outletId: string) {
     // Ambil user yang rolenya STAFF dan terikat di outlet ini
     const cashiers = await prisma.user.findMany({
-      where: { 
-        outletId, 
-        role: 'STAFF', 
+      where: {
+        outletId,
+        role: 'STAFF',
         status: 'ACTIVE',
         customRole: {
           permissions: { has: MenuPermission.MENU_POS }

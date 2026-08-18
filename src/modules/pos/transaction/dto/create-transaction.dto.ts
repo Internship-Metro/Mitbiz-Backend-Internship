@@ -10,8 +10,7 @@ export const createTransactionSchema = z.object({
   orderType: z.nativeEnum(OrderType, { message: 'Order type must be DINE_IN or TAKE_AWAY' }),
   customerName: z.string().optional(),
   tableNumber: z.string().optional(),
-  discountAmount: z.number().min(0, { message: 'Discount amount cannot be negative' }).max(1000000000, { message: 'Maksimal nominal adalah 1 Miliar' }).optional(),
-  paymentMethodId: z.string().optional(), // Optional if status is PENDING (Open Bill)
+  paymentMethodId: z.string().optional(), // Optional jika status PENDING (Open Bill)
   amountPaid: z.number().min(0, { message: 'Amount paid cannot be negative' }).max(1000000000, { message: 'Maksimal nominal adalah 1 Miliar' }).optional(),
   notes: z.string().optional(),
   items: z.array(createTransactionItemSchema).min(1, { message: 'At least one item is required' }),
