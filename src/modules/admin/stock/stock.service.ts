@@ -12,7 +12,10 @@ export class StockService {
     const { search, categoryId, lowStockOnly, outletId } = query;
     const targetOutletId = userOutletId || outletId;
 
-    const stocks = await stockRepository.findAll(targetOutletId, businessId, search, categoryId, lowStockOnly);
+    // kasirMode=true jika outletId berasal dari token kasir (bukan dari query param admin)
+    const kasirMode = !!userOutletId;
+
+    const stocks = await stockRepository.findAll(targetOutletId, businessId, search, categoryId, lowStockOnly, kasirMode);
     return stocks;
   }
 

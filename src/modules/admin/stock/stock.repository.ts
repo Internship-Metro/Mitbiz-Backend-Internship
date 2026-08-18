@@ -5,11 +5,24 @@ export class StockRepository {
   /**
    * Mengambil daftar stok untuk suatu outlet atau semua outlet dalam satu bisnis.
    */
-  async findAll(outletId: string | undefined, businessId: string | undefined, search?: string, categoryId?: string, lowStockOnly?: boolean) {
+  async findAll(
+    outletId: string | undefined,
+    businessId: string | undefined,
+    search?: string,
+    categoryId?: string,
+    lowStockOnly?: boolean,
+    kasirMode?: boolean  // true jika dipanggil oleh kasir (bukan admin)
+  ) {
     const where: Prisma.StockWhereInput = {};
 
     if (outletId) {
       where.outletId = outletId;
+      // Jika kasir: hanya tampilkan produk yang pernah benar-benar diisi stok (qty > 0).
+      // Catatan: saat produk dibuat, semua outlet otomatis dapat record Stock qty=0,
+      // sehingga tanpa filter ini semua produk akan tampil meski belum pernah diisi stok.
+      if (kasirMode) {
+        where.quantity = { gt: 0 };
+      }
     } else if (businessId) {
       where.outlet = { businessId };
     }
