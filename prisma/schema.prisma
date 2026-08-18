@@ -120,6 +120,16 @@ enum BillingCycle {
   YEARLY // Dibayar per tahun (biasanya lebih murah)
 }
 
+/// Status pembayaran transaksi ke Midtrans
+enum PaymentStatus {
+  PENDING // Transaksi dibuat, menunggu pembayaran dari bisnis
+  SUCCESS // Pembayaran berhasil dikonfirmasi oleh Midtrans (via webhook)
+  FAILED // Pembayaran gagal (kartu ditolak, expired, dll)
+  EXPIRED // Transaksi kedaluwarsa (tidak dibayar dalam batas waktu)
+  CANCELLED // Transaksi dibatalkan secara manual
+}
+
+
 // ============================================================
 // SUPER ADMIN — Manajemen Platform
 // ============================================================
@@ -151,13 +161,14 @@ model Business {
   deletedAt         DateTime? // Soft delete: diisi saat bisnis dihapus, null = masih aktif
 
   // Relasi
-  outlets        Outlet[] // Daftar semua outlet milik bisnis ini
-  users          User[] // Daftar semua user (Admin, Kasir) yang terdaftar di bisnis ini
-  categories     Category[] // Daftar kategori produk yang berlaku untuk seluruh outlet di bisnis ini
-  products       Product[] // Daftar produk/menu yang berlaku untuk seluruh outlet di bisnis ini
-  roles          Role[] // Daftar custom role yang dibuat oleh bisnis ini
-  subscriptions  BusinessSubscription[] // Riwayat langganan paket yang pernah / sedang aktif
-  paymentMethods PaymentMethod[] // Daftar metode pembayaran yang didefinisikan oleh bisnis ini
+  outlets              Outlet[] // Daftar semua outlet milik bisnis ini
+  users                User[] // Daftar semua user (Admin, Kasir) yang terdaftar di bisnis ini
+  categories           Category[] // Daftar kategori produk yang berlaku untuk seluruh outlet di bisnis ini
+  products             Product[] // Daftar produk/menu yang berlaku untuk seluruh outlet di bisnis ini
+  roles                Role[] // Daftar custom role yang dibuat oleh bisnis ini
+  subscriptions        BusinessSubscription[] // Riwayat langganan paket yang pernah / sedang aktif
+  paymentMethods       PaymentMethod[] // Daftar metode pembayaran yang didefinisikan oleh bisnis ini
+  subscriptionPayments SubscriptionPayment[] // Riwayat pembayaran ke Midtrans
 
   @@map("business") // Nama tabel di database PostgreSQL
 }
@@ -199,8 +210,9 @@ model Package {
   updatedAt    DateTime     @updatedAt // Waktu terakhir detail paket diubah
 
   // Relasi
-  features      PackageFeature[] // Daftar fitur-fitur yang termasuk dalam paket ini
-  subscriptions BusinessSubscription[] // Daftar bisnis yang menggunakan paket ini
+  features             PackageFeature[] // Daftar fitur-fitur yang termasuk dalam paket ini
+  subscriptions        BusinessSubscription[] // Daftar bisnis yang menggunakan paket ini
+  subscriptionPayments SubscriptionPayment[] // Riwayat pembayaran yang menggunakan paket ini
 
   @@map("package") // Nama tabel di database — model "Package" disimpan ke tabel bernama "package"
 }
@@ -234,12 +246,42 @@ model BusinessSubscription {
   updatedAt  DateTime           @updatedAt // Waktu terakhir status langganan diubah
 
   // Relasi
-  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  package  Package  @relation(fields: [packageId], references: [id])
+  business Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  package  Package               @relation(fields: [packageId], references: [id])
+  payments SubscriptionPayment[] // Riwayat pembayaran Midtrans untuk langganan ini
 
   @@index([businessId]) // Index pada kolom businessId
   @@map("business_subscription") // Nama tabel di database
 }
+
+/// SubscriptionPayment = record setiap transaksi pembayaran ke Midtrans.
+/// Dibuat saat Admin klik "Berlangganan", diupdate via Webhook saat pembayaran selesai.
+model SubscriptionPayment {
+  id             String        @id @default(cuid()) // ID unik record pembayaran
+  subscriptionId String? // FK ke BusinessSubscription — langganan mana yang dibayar (diisi saat sukses)
+  businessId     String // FK ke Business — bisnis mana yang melakukan pembayaran
+  packageId      String // FK ke Package — paket apa yang dibeli
+  orderId        String        @unique // Order ID unik yang dikirim ke Midtrans (format: "SUB-{cuid}")
+  snapToken      String? // Token dari Midtrans Snap API — digunakan frontend untuk tampilkan popup bayar
+  redirectUrl    String? // URL redirect ke halaman pembayaran Midtrans
+  grossAmount    Int // Total harga yang harus dibayar (dalam Rupiah)
+  paymentStatus  PaymentStatus @default(PENDING) // Status pembayaran: PENDING / SUCCESS / FAILED / EXPIRED
+  paymentType    String? // Metode bayar yang digunakan: "bank_transfer", "credit_card", "qris", dll
+  paidAt         DateTime? // Waktu pembayaran berhasil dikonfirmasi (dari webhook Midtrans)
+  expiredAt      DateTime? // Waktu transaksi kedaluwarsa (biasanya 24 jam setelah dibuat)
+  createdAt      DateTime      @default(now()) // Waktu record pembayaran ini dibuat
+  updatedAt      DateTime      @updatedAt // Waktu terakhir data pembayaran diubah
+
+  // Relasi
+  business     Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  package      Package               @relation(fields: [packageId], references: [id])
+  subscription BusinessSubscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([businessId])
+  @@index([orderId])
+  @@map("subscription_payment")
+}
+
 
 // ============================================================
 // ADMIN — Manajemen Cabang & Pengguna
