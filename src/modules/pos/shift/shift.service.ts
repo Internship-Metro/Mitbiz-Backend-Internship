@@ -85,8 +85,8 @@ export class ShiftService {
   /**
    * Ambil riwayat shift untuk Admin, dilengkapi dengan perhitungan total transaksi
    */
-  async getShiftHistory(outletId: string, page: number, limit: number) {
-    const { data, total } = await shiftRepository.findAll({ outletId, page, limit });
+  async getShiftHistory(outletId: string | undefined, businessId: string | undefined, page: number, limit: number) {
+    const { data, total } = await shiftRepository.findAll({ outletId, businessId, page, limit });
 
     // Lakukan perhitungan dinamis (on-the-fly) untuk setiap shift
     const mappedData = data.map((shift: any) => {
@@ -131,12 +131,12 @@ export class ShiftService {
   // LOGIKA KHUSUS ADMIN
   // ==========================================
 
-  async getAdminShiftSummary(outletId: string) {
-    return shiftRepository.getShiftSummaryForToday(outletId);
+  async getAdminShiftSummary(outletId?: string, businessId?: string) {
+    return shiftRepository.getShiftSummaryForToday(outletId, businessId);
   }
 
-  async getAdminCashiers(outletId: string) {
-    return shiftRepository.getCashiersWithShiftStatus(outletId);
+  async getAdminCashiers(outletId?: string, businessId?: string) {
+    return shiftRepository.getCashiersWithShiftStatus(outletId, businessId);
   }
 
   async forceCloseShiftByAdmin(shiftId: string, adminId: string, dto: CloseShiftDto) {

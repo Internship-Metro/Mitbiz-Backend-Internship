@@ -44,18 +44,15 @@ export class ShiftController {
 
   async getShiftHistory(req: Request, res: Response, next: NextFunction) {
     try {
-      // Kasir akan melihat shift history di outletnya sendiri, Admin melihat dari query
-      const outletId = req.user!.outletId || (req.query.outletId as string);
-      
-      if (!outletId) {
-        return res.status(400).json({ success: false, message: 'Parameter outletId diperlukan (bisa dikirim via query ?outletId=...)' });
-      }
+      // Kasir: outletId dari token. Admin: dari query param (opsional, jika kosong = semua cabang)
+      const outletId = (req.user!.outletId || (req.query.outletId as string)) ?? undefined;
+      const businessId = req.user!.businessId ?? undefined;
 
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
 
-      const result = await shiftService.getShiftHistory(outletId, page, limit);
-      
+      const result = await shiftService.getShiftHistory(outletId, businessId, page, limit);
+
       return res.status(200).json({
         success: true,
         message: 'Riwayat shift berhasil diambil',
@@ -73,11 +70,10 @@ export class ShiftController {
 
   async getShiftSummary(req: Request, res: Response, next: NextFunction) {
     try {
-      const outletId = req.user!.outletId || (req.query.outletId as string);
-      if (!outletId) {
-        return res.status(400).json({ success: false, message: 'Parameter outletId diperlukan' });
-      }
-      const result = await shiftService.getAdminShiftSummary(outletId);
+      // outletId opsional: jika tidak ada → tampil semua cabang dalam bisnis
+      const outletId = (req.user!.outletId || (req.query.outletId as string)) ?? undefined;
+      const businessId = req.user!.businessId ?? undefined;
+      const result = await shiftService.getAdminShiftSummary(outletId, businessId);
       return sendSuccess(res, result, 'Statistik shift berhasil diambil', 200);
     } catch (error) {
       next(error);
@@ -86,11 +82,10 @@ export class ShiftController {
 
   async getCashiers(req: Request, res: Response, next: NextFunction) {
     try {
-      const outletId = req.user!.outletId || (req.query.outletId as string);
-      if (!outletId) {
-        return res.status(400).json({ success: false, message: 'Parameter outletId diperlukan' });
-      }
-      const result = await shiftService.getAdminCashiers(outletId);
+      // outletId opsional: jika tidak ada → tampil kasir semua cabang dalam bisnis
+      const outletId = (req.user!.outletId || (req.query.outletId as string)) ?? undefined;
+      const businessId = req.user!.businessId ?? undefined;
+      const result = await shiftService.getAdminCashiers(outletId, businessId);
       return sendSuccess(res, result, 'Daftar kasir berhasil diambil', 200);
     } catch (error) {
       next(error);

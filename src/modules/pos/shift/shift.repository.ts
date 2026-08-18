@@ -61,18 +61,27 @@ export class ShiftRepository {
    */
   async findAll({
     outletId,
+    businessId,
     page = 1,
     limit = 10,
   }: {
-    outletId: string;
+    outletId?: string;
+    businessId?: string;
     page?: number;
     limit?: number;
   }) {
     const skip = (page - 1) * limit;
 
+    // Filter: per cabang jika outletId ada, atau semua cabang dalam bisnis jika hanya businessId
+    const where: any = outletId
+      ? { outletId }
+      : businessId
+        ? { outlet: { businessId } }
+        : {};
+
     const [data, total] = await Promise.all([
       prisma.shift.findMany({
-        where: { outletId },
+        where,
         skip,
         take: limit,
         orderBy: { openedAt: 'desc' },
@@ -80,9 +89,10 @@ export class ShiftRepository {
           kasir: {
             select: { id: true, name: true, email: true },
           },
+          outlet: { select: { name: true } },
           transactions: {
             where: {
-              status: 'COMPLETED', // Hanya hitung transaksi yang selesai
+              status: 'COMPLETED',
             },
             select: {
               totalAmount: true,
@@ -94,9 +104,7 @@ export class ShiftRepository {
           },
         },
       }),
-      prisma.shift.count({
-        where: { outletId },
-      }),
+      prisma.shift.count({ where }),
     ]);
 
     return { data, total };
@@ -120,25 +128,35 @@ export class ShiftRepository {
 
   /**
    * Ambil statistik ringkasan shift hari ini untuk dashboard Admin
+   * outletId opsional: jika ada → filter 1 cabang, jika tidak ada → filter semua cabang dalam businessId
    */
-  async getShiftSummaryForToday(outletId: string) {
+  async getShiftSummaryForToday(outletId?: string, businessId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Hitung shift yang saat ini sedang aktif (closedAt = null)
+    const outletFilter: any = outletId
+      ? { outletId }
+      : businessId
+        ? { outlet: { businessId } }
+        : {};
+
+    const txOutletFilter: any = outletId
+      ? { outletId }
+      : businessId
+        ? { outlet: { businessId } }
+        : {};
+
     const activeShiftsCount = await prisma.shift.count({
-      where: { outletId, closedAt: null },
+      where: { ...outletFilter, closedAt: null },
     });
 
-    // Hitung semua shift yang dibuat hari ini (mulai jam 00:00)
     const todayShiftsCount = await prisma.shift.count({
-      where: { outletId, openedAt: { gte: today } },
+      where: { ...outletFilter, openedAt: { gte: today } },
     });
 
-    // Hitung total penjualan hari ini dari transaksi yang COMPLETED
     const todayTransactions = await prisma.transaction.aggregate({
       where: {
-        outletId,
+        ...txOutletFilter,
         status: 'COMPLETED',
         createdAt: { gte: today }
       },
@@ -156,23 +174,31 @@ export class ShiftRepository {
 
   /**
    * Ambil daftar kasir di outlet ini beserta status shift aktifnya
+   * outletId opsional: jika ada → filter 1 cabang, jika tidak → semua cabang dalam bisnis
    */
-  async getCashiersWithShiftStatus(outletId: string) {
-    // Ambil user yang rolenya STAFF dan terikat di outlet ini
-    const cashiers = await prisma.user.findMany({
-      where: {
-        outletId,
-        role: 'STAFF',
-        status: 'ACTIVE',
-        customRole: {
-          permissions: { has: MenuPermission.MENU_POS }
-        }
+  async getCashiersWithShiftStatus(outletId?: string, businessId?: string) {
+    const where: any = {
+      role: 'STAFF',
+      status: 'ACTIVE',
+      customRole: {
+        permissions: { has: MenuPermission.MENU_POS }
       },
+    };
+
+    if (outletId) {
+      where.outletId = outletId;
+    } else if (businessId) {
+      where.outlet = { businessId };
+    }
+
+    const cashiers = await prisma.user.findMany({
+      where,
       select: {
         id: true,
         name: true,
+        outlet: { select: { id: true, name: true } },
         shifts: {
-          where: { closedAt: null }, // Cek apakah ada shift aktif
+          where: { closedAt: null },
           select: { id: true, openedAt: true },
           take: 1,
         },
@@ -182,6 +208,7 @@ export class ShiftRepository {
     return cashiers.map((cashier) => ({
       id: cashier.id,
       name: cashier.name,
+      outlet: cashier.outlet,
       activeShiftId: cashier.shifts.length > 0 ? cashier.shifts[0].id : null,
       activeShiftOpenedAt: cashier.shifts.length > 0 ? cashier.shifts[0].openedAt : null,
       status: cashier.shifts.length > 0 ? 'Sedang Bertugas' : 'Tidak Ada Shift Aktif',
