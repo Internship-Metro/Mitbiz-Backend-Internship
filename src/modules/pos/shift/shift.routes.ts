@@ -65,11 +65,12 @@ router.get(
 
 /**
  * @route GET /api/v1/shifts/summary
- * @desc Statistik shift hari ini (Admin)
+ * @desc Statistik shift hari ini
+ * @access ADMIN (MENU_SHIFT) atau KASIR (MENU_POS)
  */
 router.get(
   '/summary',
-  requirePermissions([MenuPermission.MENU_SHIFT]),
+  requirePermissions([MenuPermission.MENU_SHIFT, MenuPermission.MENU_POS]),
   shiftController.getShiftSummary.bind(shiftController)
 );
 
