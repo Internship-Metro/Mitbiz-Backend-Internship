@@ -10,9 +10,10 @@ export class ProductRepository {
       search?: string;
       categoryId?: string;
       status?: ProductStatus;
+      outletId?: string;
     }
   ) {
-    const { page, limit, search, categoryId, status } = params;
+    const { page, limit, search, categoryId, status, outletId } = params;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = {
@@ -23,6 +24,13 @@ export class ProductRepository {
       }),
       ...(categoryId && { categoryId }),
       ...(status && { status }),
+      // Jika dipanggil oleh kasir (outletId ada), hanya tampilkan produk
+      // yang pernah didaftarkan ke cabang tersebut (ada record Stock-nya)
+      ...(outletId && {
+        stocks: {
+          some: { outletId },
+        },
+      }),
     };
 
     const [data, total] = await Promise.all([
@@ -38,10 +46,10 @@ export class ProductRepository {
             },
           },
           stocks: {
-            select: {
-              outletId: true,
-              quantity: true,
-            },
+            // Jika kasir, hanya sertakan data stok outlet yang relevan saja
+            ...(outletId
+              ? { where: { outletId }, select: { outletId: true, quantity: true } }
+              : { select: { outletId: true, quantity: true } }),
           },
         },
         orderBy: { createdAt: 'desc' },

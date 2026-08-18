@@ -11,7 +11,7 @@ export class ProductService {
 
   async getAllProducts(
     businessId: string,
-    params: { page?: number; limit?: number; search?: string; categoryId?: string; status?: ProductStatus }
+    params: { page?: number; limit?: number; search?: string; categoryId?: string; status?: ProductStatus; outletId?: string }
   ) {
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 10;

@@ -13,12 +13,16 @@ export class ProductController {
       const businessId = req.user!.businessId!;
       const { page, limit, search, categoryId, status } = req.query;
 
+      // Jika kasir (STAFF), hanya tampilkan produk yang punya record Stock di outletnya
+      const outletId = req.user!.role === 'STAFF' ? req.user!.outletId ?? undefined : undefined;
+
       const result = await this.service.getAllProducts(businessId, {
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
         search: search as string,
         categoryId: categoryId as string,
         status: status as ProductStatus,
+        outletId,
       });
 
       const { data, total, page: currentPage, limit: currentLimit } = result;
