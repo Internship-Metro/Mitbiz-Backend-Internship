@@ -3438,13 +3438,13 @@ paths:
                 $ref: "#/components/schemas/ApiErrorResponse"
       security:
         - bearerAuth: []
-  /shifts/cashiers-status:
+  /shifts/cashiers:
     get:
       tags:
         - Shift
       summary: Daftar kasir & status shiftnya
-      description: "Daftar kasir & status shiftnya - Folder: Shift"
-      operationId: Shift_Daftar_kasir___status_shiftnya_get
+      description: "Daftar kasir & status shiftnya - Folder: Shift. Permission: MENU_SHIFT (Admin saja)."
+      operationId: Shift_Daftar_kasir_status_shiftnya_get
       parameters:
         - name: page
           in: query
@@ -4003,20 +4003,49 @@ paths:
                 $ref: "#/components/schemas/ApiErrorResponse"
       security:
         - bearerAuth: []
-  /reports/sales/exportformat=excel:
+  /reports/sales/export:
     get:
       tags:
         - Laporan
-      summary: Export Laporan (Unduhan) - Kalau PDF ubah Excel jadi PDF
-      description: "Export Laporan (Unduhan) - Folder: Laporan"
-      operationId: Laporan_Export_Laporan__Unduhan__get
+      summary: Export Laporan Penjualan (Unduhan File)
+      description: "Export Laporan Penjualan - Folder: Laporan. Gunakan query param ?format=excel atau ?format=pdf untuk memilih format unduhan."
+      operationId: Laporan_Export_Laporan_Penjualan_get
+      parameters:
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [excel, pdf]
+            default: excel
+          description: Format file yang akan diunduh
+          example: excel
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter tanggal mulai
+          example: 2026-08-01
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter tanggal akhir
+          example: 2026-08-31
       responses:
         "200":
-          description: Berhasil
+          description: Berhasil — file diunduh
           content:
-            application/json:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
         "400":
           description: Bad Request / Validasi Gagal
           content:
@@ -4031,12 +4060,6 @@ paths:
                 $ref: "#/components/schemas/ApiErrorResponse"
         "403":
           description: Forbidden / Hak Akses Ditolak
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
-        "404":
-          description: Data Tidak Ditemukan
           content:
             application/json:
               schema:
@@ -4162,46 +4185,7 @@ paths:
                 $ref: "#/components/schemas/ApiErrorResponse"
       security:
         - bearerAuth: []
-  /reports/export/pdf:
-    get:
-      tags:
-        - Laporan
-      summary: Laporan Format Export/PDF (Untuk Unduhan File)
-      description: "Laporan Format Export/PDF (Untuk Unduhan File) - Folder: Laporan"
-      operationId: Laporan_Laporan_Format_Export_PDF__Untuk_Unduhan_File__get
-      responses:
-        "200":
-          description: Berhasil
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
-          description: Bad Request / Validasi Gagal
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
-        "401":
-          description: Unauthorized / Token Tidak Valid
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
-        "403":
-          description: Forbidden / Hak Akses Ditolak
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
-        "404":
-          description: Data Tidak Ditemukan
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
-      security:
-        - bearerAuth: []
+
   /packages:
     get:
       tags:
