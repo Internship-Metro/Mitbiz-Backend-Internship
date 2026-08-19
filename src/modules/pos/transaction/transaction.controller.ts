@@ -61,11 +61,13 @@ export class TransactionController {
         if (!businessId) {
           return res.status(400).json({ success: false, message: 'businessId tidak ditemukan di token' });
         }
+        console.log('[DEBUG getTransactions] businessId from token:', businessId);
         result = await this.service.getTransactions({
           mode: 'business',
           businessId,
           filters,
         });
+        console.log('[DEBUG getTransactions] totalTransaksi found:', (result as any)?.summary?.totalTransaksi);
       }
 
       res.status(200).json({
