@@ -11,6 +11,16 @@ export const updateBusinessSchema = z.object({
     .min(0, { message: 'Pajak (Tax percentage) tidak boleh kurang dari 0' })
     .max(100, { message: 'Pajak (Tax percentage) tidak boleh lebih dari 100' })
     .optional(),
+  isDiscountEnabled: z.boolean().optional(),
+  globalDiscountPercentage: z
+    .number()
+    .min(0, { message: 'Persentase diskon tidak boleh kurang dari 0' })
+    .max(100, { message: 'Persentase diskon tidak boleh lebih dari 100' })
+    .optional(),
+  globalDiscountMinPurchase: z
+    .number()
+    .min(0, { message: 'Minimal pembelian diskon tidak boleh kurang dari 0' })
+    .optional(),
 });
 
 export type UpdateBusinessDto = z.infer<typeof updateBusinessSchema>;
