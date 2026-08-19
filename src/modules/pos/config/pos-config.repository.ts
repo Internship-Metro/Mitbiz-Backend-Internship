@@ -11,6 +11,9 @@ export class PosConfigRepository {
       select: {
         isTaxEnabled: true,
         taxPercentage: true,
+        isDiscountEnabled: true,
+        globalDiscountPercentage: true,
+        globalDiscountMinPurchase: true,
       },
     });
   }

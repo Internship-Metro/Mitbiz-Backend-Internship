@@ -21,6 +21,11 @@ export class PosConfigService {
         isEnabled: config.isTaxEnabled,
         percentage: config.taxPercentage ?? 0,
       },
+      discount: {
+        isEnabled: config.isDiscountEnabled,
+        percentage: config.globalDiscountPercentage ?? 0,
+        minPurchase: config.globalDiscountMinPurchase ?? 0,
+      }
     };
   }
 }

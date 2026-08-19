@@ -35,28 +35,47 @@ export class TransactionController {
 
   getTransactions = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const outletId = req.user!.outletId || (req.query.outletId as string);
-      if (!outletId) {
-        return res.status(400).json({ success: false, message: 'outletId diperlukan. Untuk Admin, sertakan ?outletId=<id>' });
-      }
+      const kasirOutletId = req.user!.outletId; // Ada jika Kasir, null jika Admin
+      const businessId = req.user!.businessId;
 
       const filters = {
         shiftId: req.query.shiftId as string,
         status: req.query.status as any,
         startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
         endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
+        search: req.query.search as string,
+        outletId: req.query.outletId as string, // opsional untuk Admin
       };
 
-      const transactions = await this.service.getTransactions(outletId, filters);
-      
+      let result;
+      if (kasirOutletId) {
+        // Mode Kasir: hanya lihat transaksi di outletnya sendiri
+        result = await this.service.getTransactions({
+          mode: 'outlet',
+          outletId: kasirOutletId,
+          filters,
+        });
+      } else {
+        // Mode Admin/Owner: lihat semua transaksi bisnis + summary stats
+        if (!businessId) {
+          return res.status(400).json({ success: false, message: 'businessId tidak ditemukan di token' });
+        }
+        result = await this.service.getTransactions({
+          mode: 'business',
+          businessId,
+          filters,
+        });
+      }
+
       res.status(200).json({
         success: true,
-        data: transactions,
+        data: result,
       });
     } catch (error) {
       next(error);
     }
   };
+
 
   getTransactionById = async (req: Request, res: Response, next: NextFunction) => {
     try {

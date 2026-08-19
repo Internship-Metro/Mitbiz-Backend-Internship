@@ -165,8 +165,22 @@ export class TransactionService {
     return transaction;
   }
 
-  async getTransactions(outletId: string, filters: any) {
-    return this.repository.findManyByOutlet(outletId, filters);
+  async getTransactions(params: {
+    mode: 'outlet';
+    outletId: string;
+    filters: any;
+  } | {
+    mode: 'business';
+    businessId: string;
+    filters: any;
+  }) {
+    if (params.mode === 'outlet') {
+      // Kasir: hanya lihat transaksi outletnya sendiri
+      return this.repository.findManyByOutlet(params.outletId, params.filters);
+    } else {
+      // Admin/Owner: lihat semua transaksi bisnis + summary stats
+      return this.repository.findManyByBusiness(params.businessId, params.filters);
+    }
   }
 
   async getTransactionById(outletId: string, id: string) {

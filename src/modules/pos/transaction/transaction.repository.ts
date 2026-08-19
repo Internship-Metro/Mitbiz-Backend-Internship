@@ -144,8 +144,76 @@ export class TransactionRepository {
       orderBy: { createdAt: 'desc' },
       include: {
         kasir: { select: { name: true } },
+        outlet: { select: { id: true, name: true } },
+        paymentMethod: { select: { name: true, type: true } },
       },
     });
+  }
+
+  /**
+   * Untuk Admin/Owner: ambil semua transaksi dalam satu bisnis (semua outlet).
+   * outletId opsional — jika diisi, filter ke cabang tertentu (dropdown "Semua Cabang").
+   * Mengembalikan summary stats sesuai desain UI: Total Penjualan, Transaksi, Diskon, Pajak.
+   */
+  async findManyByBusiness(
+    businessId: string,
+    filters?: {
+      outletId?: string;
+      status?: TransactionStatus;
+      startDate?: Date;
+      endDate?: Date;
+      search?: string;
+    }
+  ) {
+    const whereClause: Prisma.TransactionWhereInput = {
+      outlet: { businessId },
+    };
+
+    if (filters?.outletId) whereClause.outletId = filters.outletId;
+    if (filters?.status) whereClause.status = filters.status;
+    if (filters?.startDate || filters?.endDate) {
+      whereClause.createdAt = {};
+      if (filters.startDate) whereClause.createdAt.gte = filters.startDate;
+      if (filters.endDate) whereClause.createdAt.lte = filters.endDate;
+    }
+    if (filters?.search) {
+      whereClause.OR = [
+        { invoiceNumber: { contains: filters.search, mode: 'insensitive' } },
+        { kasir: { name: { contains: filters.search, mode: 'insensitive' } } },
+        { customerName: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [transactions, aggregate] = await Promise.all([
+      prisma.transaction.findMany({
+        where: whereClause,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          kasir: { select: { name: true } },
+          outlet: { select: { id: true, name: true } },
+          paymentMethod: { select: { name: true, type: true } },
+        },
+      }),
+      prisma.transaction.aggregate({
+        where: { ...whereClause, status: 'COMPLETED' },
+        _sum: {
+          totalAmount: true,
+          globalDiscountAmount: true,
+          taxAmount: true,
+        },
+        _count: { id: true },
+      }),
+    ]);
+
+    return {
+      summary: {
+        totalPenjualan: aggregate._sum.totalAmount ?? 0,
+        totalTransaksi: aggregate._count.id,
+        totalDiskon: aggregate._sum.globalDiscountAmount ?? 0,
+        totalPajak: aggregate._sum.taxAmount ?? 0,
+      },
+      transactions,
+    };
   }
 
   async payPendingTransaction(
