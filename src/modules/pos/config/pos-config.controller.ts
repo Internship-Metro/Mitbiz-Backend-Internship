@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { posConfigService } from './pos-config.service';
 import { sendSuccess } from '@common/utils/response.util';
+import { prisma } from '@/prisma/client';
 
 export class PosConfigController {
   /**
@@ -10,7 +11,17 @@ export class PosConfigController {
    */
   async getConfig(req: Request, res: Response, next: NextFunction) {
     try {
-      const businessId = req.user!.businessId;
+      let businessId = req.user!.businessId;
+
+      // Kasir mungkin tidak punya businessId langsung di token,
+      // tapi punya outletId — resolve businessId dari outlet
+      if (!businessId && req.user!.outletId) {
+        const outlet = await prisma.outlet.findUnique({
+          where: { id: req.user!.outletId },
+          select: { businessId: true },
+        });
+        businessId = outlet?.businessId ?? null;
+      }
 
       if (!businessId) {
         return res.status(400).json({
