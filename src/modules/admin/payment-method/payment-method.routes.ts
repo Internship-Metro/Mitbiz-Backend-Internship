@@ -13,7 +13,7 @@ const router = Router();
 
 router.use('/payment-methods', jwtAuthGuard);
 
-router.get('/payment-methods', paymentMethodController.getMethods); // Semua role yang login bisa GET
+router.get('/payment-methods', requirePermissions(['MENU_PAYMENT']), paymentMethodController.getMethods);
 router.post('/payment-methods', requirePermissions(['MENU_PAYMENT']), paymentMethodController.createMethod);
 router.patch('/payment-methods/:id', requirePermissions(['MENU_PAYMENT']), paymentMethodController.updateMethod);
 router.delete('/payment-methods/:id', requirePermissions(['MENU_PAYMENT']), paymentMethodController.deleteMethod);
