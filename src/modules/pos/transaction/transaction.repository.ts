@@ -125,6 +125,7 @@ export class TransactionRepository {
       status?: TransactionStatus;
       startDate?: Date;
       endDate?: Date;
+      categoryId?: string;
     }
   ): Promise<Transaction[]> {
     const whereClause: Prisma.TransactionWhereInput = {
@@ -137,6 +138,12 @@ export class TransactionRepository {
       whereClause.createdAt = {};
       if (filters.startDate) whereClause.createdAt.gte = filters.startDate;
       if (filters.endDate) whereClause.createdAt.lte = filters.endDate;
+    }
+    // Filter kategori: hanya transaksi yang punya item produk dari kategori ini
+    if (filters?.categoryId) {
+      whereClause.items = {
+        some: { product: { categoryId: filters.categoryId } },
+      };
     }
 
     return prisma.transaction.findMany({
@@ -163,6 +170,7 @@ export class TransactionRepository {
       startDate?: Date;
       endDate?: Date;
       search?: string;
+      categoryId?: string;
     }
   ) {
     const whereClause: Prisma.TransactionWhereInput = {
@@ -182,6 +190,12 @@ export class TransactionRepository {
         { kasir: { name: { contains: filters.search, mode: 'insensitive' } } },
         { customerName: { contains: filters.search, mode: 'insensitive' } },
       ];
+    }
+    // Filter kategori: hanya transaksi yang punya item produk dari kategori ini
+    if (filters?.categoryId) {
+      whereClause.items = {
+        some: { product: { categoryId: filters.categoryId } },
+      };
     }
 
     const [transactions, aggregate] = await Promise.all([

@@ -44,7 +44,8 @@ export class TransactionController {
         startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
         endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
         search: req.query.search as string,
-        outletId: req.query.outletId as string, // opsional untuk Admin
+        outletId: req.query.outletId as string,   // opsional untuk Admin
+        categoryId: req.query.categoryId as string, // filter per kategori produk
       };
 
       let result;
