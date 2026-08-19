@@ -35,9 +35,9 @@ export class TransactionController {
 
   getTransactions = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const outletId = String(req.user!.outletId || req.query.outletId);
+      const outletId = req.user!.outletId || (req.query.outletId as string);
       if (!outletId) {
-        return res.status(400).json({ success: false, message: 'outletId diperlukan' });
+        return res.status(400).json({ success: false, message: 'outletId diperlukan. Untuk Admin, sertakan ?outletId=<id>' });
       }
 
       const filters = {
@@ -60,9 +60,9 @@ export class TransactionController {
 
   getTransactionById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const outletId = String(req.user!.outletId || req.query.outletId);
+      const outletId = req.user!.outletId || (req.query.outletId as string);
       if (!outletId) {
-        return res.status(400).json({ success: false, message: 'outletId diperlukan' });
+        return res.status(400).json({ success: false, message: 'outletId diperlukan. Untuk Admin, sertakan ?outletId=<id>' });
       }
 
       const transaction = await this.service.getTransactionById(outletId, req.params.id as string);
@@ -98,9 +98,9 @@ export class TransactionController {
 
   voidTransaction = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const outletId = String(req.user!.outletId || req.query.outletId);
+      const outletId = req.user!.outletId || (req.query.outletId as string);
       if (!outletId) {
-        return res.status(400).json({ success: false, message: 'outletId diperlukan' });
+        return res.status(400).json({ success: false, message: 'outletId diperlukan. Untuk Admin, sertakan ?outletId=<id>' });
       }
 
       const payload: VoidTransactionDto = req.body;
