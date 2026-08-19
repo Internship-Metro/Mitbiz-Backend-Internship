@@ -18,6 +18,14 @@ function generateTokenPair(payload: Omit<JwtPayload, 'type'>) {
   return { accessToken, refreshToken };
 }
 
+// Helper: Penentuan halaman tujuan setelah login (Portal Target)
+function getPortalTarget(role: string, permissions?: string[]): string {
+  if (role === 'SUPER_ADMIN') return 'SUPER_ADMIN';
+  if (role === 'ADMIN') return 'ADMIN';
+  if (permissions && permissions.includes('MENU_POS')) return 'POS';
+  return 'ADMIN';
+}
+
 export class AuthService {
   /**
    * Register Step 1: Create user account
@@ -315,6 +323,7 @@ export class AuthService {
 
     return {
       requiresRegistration: false,
+      portalTarget: getPortalTarget(user.role, user.customRole?.permissions),
       user: {
         id: user.id,
         name: user.name,
@@ -359,6 +368,7 @@ export class AuthService {
     });
 
     return {
+      portalTarget: getPortalTarget(user.role, user.customRole?.permissions),
       user: {
         id: user.id,
         name: user.name,
