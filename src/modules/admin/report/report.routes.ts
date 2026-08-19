@@ -2,12 +2,13 @@ import { Router } from 'express';
 import { reportController } from './report.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
+import { requireActiveSubscription } from '@common/guards/subscription.guard';
 import { MenuPermission } from '@prisma/client';
 
 const reportRouter = Router();
 
-// Semua rute report memerlukan JWT dan menu report
-reportRouter.use(jwtAuthGuard);
+// Semua rute report memerlukan JWT, langganan aktif, dan menu report
+reportRouter.use(jwtAuthGuard, requireActiveSubscription);
 reportRouter.use(requirePermissions([MenuPermission.MENU_REPORT]));
 
 // Rute export harus ditaruh sebelum route dengan parameter (jika ada)

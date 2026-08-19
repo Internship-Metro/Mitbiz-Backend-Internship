@@ -3,12 +3,13 @@ import { roleController } from './role.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requireRoles } from '@common/guards/roles.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
+import { requireActiveSubscription } from '@common/guards/subscription.guard';
 import { MenuPermission } from '@prisma/client';
 
 const router = Router();
 
-// Semua route di bawah ini mewajibkan user login
-router.use(jwtAuthGuard);
+// Semua route di bawah ini mewajibkan user login dan langganan aktif
+router.use(jwtAuthGuard, requireActiveSubscription);
 
 // Mendapatkan semua role untuk bisnis (Biasanya dipakai untuk dropdown pilih role saat buat user)
 // Siapapun yang punya MENU_STAFF (bisa Admin/Super Admin/Staff berwenang) boleh akses

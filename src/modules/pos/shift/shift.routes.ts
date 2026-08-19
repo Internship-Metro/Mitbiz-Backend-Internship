@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { shiftController } from './shift.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
+import { requireActiveSubscription } from '@common/guards/subscription.guard';
 import { MenuPermission } from '@prisma/client';
 import { validate } from '@common/pipes/zod-validation.pipe';
 import { openShiftSchema } from './dto/open-shift.dto';
@@ -9,8 +10,8 @@ import { closeShiftSchema } from './dto/close-shift.dto';
 
 const router = Router();
 
-// Semua route di bawah ini wajib login
-router.use(jwtAuthGuard);
+// Semua route di bawah ini wajib login & langganan aktif
+router.use(jwtAuthGuard, requireActiveSubscription);
 
 /**
  * @route POST /api/v1/shifts/open

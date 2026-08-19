@@ -105,7 +105,7 @@ export class AuthController {
         return sendSuccess(res, result, result.message);
       }
       
-      const { accessToken, refreshToken } = result.tokens!;
+      const { accessToken, refreshToken } = (result as { tokens: { accessToken: string; refreshToken: string } }).tokens;
       res.cookie('accessToken', accessToken, cookieOptions);
       res.cookie('refreshToken', refreshToken, cookieOptions);
       

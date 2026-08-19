@@ -126,6 +126,38 @@ export class OutletService {
       throw new AppError('Tidak bisa menambah outlet ke bisnis yang sedang dibekukan', 400);
     }
 
+    // ── Validasi batas cabang berdasarkan paket langganan ────────────────────
+    // Super Admin dikecualikan — bisa tambah outlet tanpa batasan
+    if (requesterRole !== 'SUPER_ADMIN') {
+      const now = new Date();
+      const { prisma } = await import('@/prisma/client');
+
+      const activeSubscription = await prisma.businessSubscription.findFirst({
+        where: {
+          businessId: resolvedBusinessId,
+          status: 'ACTIVE',
+          endDate: { gt: now },
+        },
+        include: { package: { select: { maxBranches: true, name: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (activeSubscription) {
+        const currentOutletCount = await prisma.outlet.count({
+          where: { businessId: resolvedBusinessId, deletedAt: null },
+        });
+
+        if (currentOutletCount >= activeSubscription.package.maxBranches) {
+          throw new AppError(
+            `Paket "${activeSubscription.package.name}" Anda hanya mengizinkan maksimal ${activeSubscription.package.maxBranches} cabang. ` +
+            `Anda sudah memiliki ${currentOutletCount} cabang. Upgrade paket untuk menambah lebih banyak cabang.`,
+            403,
+          );
+        }
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const finalData = { ...data, businessId: resolvedBusinessId };
     return outletRepository.create(finalData as CreateOutletType);
   }

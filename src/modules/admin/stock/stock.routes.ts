@@ -2,12 +2,13 @@ import { Router } from 'express';
 import { stockController } from './stock.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
+import { requireActiveSubscription } from '@common/guards/subscription.guard';
 import { MenuPermission } from '@prisma/client';
 
 const stockRouter = Router();
 
-// Semua endpoint stock wajib login
-stockRouter.use(jwtAuthGuard);
+// Semua endpoint stock wajib login & langganan aktif
+stockRouter.use(jwtAuthGuard, requireActiveSubscription);
 
 // GET /api/v1/stocks - kasir (MENU_POS) dan admin (MENU_STOCK) bisa lihat stok
 stockRouter.get('/', requirePermissions([MenuPermission.MENU_STOCK, MenuPermission.MENU_POS]), stockController.getStocks);

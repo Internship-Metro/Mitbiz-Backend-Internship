@@ -2,14 +2,15 @@ import { Router } from 'express';
 import { ProductController } from './product.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
+import { requireActiveSubscription } from '@common/guards/subscription.guard';
 import { uploadSingle } from '@common/middlewares/multer.middleware';
 import { MenuPermission } from '@prisma/client';
 
 const router = Router();
 const controller = new ProductController();
 
-// Semua rute produk memerlukan login
-router.use(jwtAuthGuard);
+// Semua rute produk memerlukan login & langganan aktif
+router.use(jwtAuthGuard, requireActiveSubscription);
 
 // GET: Bisa diakses
 router.get('/', requirePermissions([MenuPermission.MENU_PRODUCT, MenuPermission.MENU_POS]), controller.getAllProducts);

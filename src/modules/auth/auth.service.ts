@@ -26,6 +26,37 @@ function getPortalTarget(role: string, permissions?: string[]): string {
   return 'ADMIN';
 }
 
+// Helper: Ambil info langganan aktif untuk ditempel ke response login/me
+// Returns null jika SUPER_ADMIN (tidak butuh langganan) atau tidak ada businessId
+async function getSubscriptionInfo(role: string, businessId?: string | null) {
+  // SUPER_ADMIN tidak terikat langganan bisnis
+  if (role === 'SUPER_ADMIN' || !businessId) {
+    return { hasActiveSubscription: null, activePackage: null };
+  }
+
+  const sub = await authRepository.findActiveSubscriptionByBusinessId(businessId);
+
+  if (!sub) {
+    return { hasActiveSubscription: false, activePackage: null };
+  }
+
+  const now = new Date();
+  const daysRemaining = Math.ceil((sub.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  return {
+    hasActiveSubscription: true,
+    activePackage: {
+      id: sub.package.id,
+      name: sub.package.name,
+      billingCycle: sub.package.billingCycle,
+      maxBranches: sub.package.maxBranches,
+      maxKasir: sub.package.maxKasir,
+      endDate: sub.endDate,
+      daysRemaining,
+    },
+  };
+}
+
 export class AuthService {
   /**
    * Register Step 1: Create user account
@@ -321,9 +352,12 @@ export class AuthService {
       permissions: user.customRole?.permissions,
     });
 
+    const subscriptionInfo = await getSubscriptionInfo(user.role, user.businessId);
+
     return {
       requiresRegistration: false,
       portalTarget: getPortalTarget(user.role, user.customRole?.permissions),
+      ...subscriptionInfo,
       user: {
         id: user.id,
         name: user.name,
@@ -367,8 +401,11 @@ export class AuthService {
       permissions: user.customRole?.permissions,
     });
 
+    const subscriptionInfo = await getSubscriptionInfo(user.role, user.businessId);
+
     return {
       portalTarget: getPortalTarget(user.role, user.customRole?.permissions),
+      ...subscriptionInfo,
       user: {
         id: user.id,
         name: user.name,
@@ -484,10 +521,25 @@ export class AuthService {
 
   /**
    * Get Me
+   * Mengembalikan profil user + status langganan bisnis.
+   * Dipakai frontend untuk cek apakah perlu redirect ke halaman beli paket.
    */
   async getMe(userId: string) {
     const user = await authRepository.findUserById(userId);
     if (!user) throw new AppError('User tidak ditemukan', 404);
+
+    // Resolve businessId untuk kasir yang tidak punya businessId di record user
+    let resolvedBusinessId = user.businessId;
+    if (!resolvedBusinessId && user.outletId) {
+      const { prisma } = await import('@/prisma/client');
+      const outlet = await prisma.outlet.findUnique({
+        where: { id: user.outletId },
+        select: { businessId: true },
+      });
+      resolvedBusinessId = outlet?.businessId ?? null;
+    }
+
+    const subscriptionInfo = await getSubscriptionInfo(user.role, resolvedBusinessId);
 
     return {
       id: user.id,
@@ -497,6 +549,7 @@ export class AuthService {
       businessId: user.businessId,
       outletId: user.outletId,
       avatarUrl: user.avatarUrl,
+      ...subscriptionInfo,
     };
   }
 }

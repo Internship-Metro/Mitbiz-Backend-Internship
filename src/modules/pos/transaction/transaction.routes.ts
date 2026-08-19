@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { TransactionController } from './transaction.controller';
 import { jwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { requirePermissions } from '../../../common/guards/permissions.guard';
+import { requireActiveSubscription } from '../../../common/guards/subscription.guard';
 import { validate } from '../../../common/pipes/zod-validation.pipe';
 import { MenuPermission } from '@prisma/client';
 import {
@@ -13,7 +14,7 @@ import { voidTransactionSchema } from './dto/void-transaction.dto';
 const router = Router();
 const controller = new TransactionController();
 
-router.use(jwtAuthGuard); // Semua route butuh login (Kasir/Admin)
+router.use(jwtAuthGuard, requireActiveSubscription); // Semua route butuh login & langganan aktif (Kasir/Admin)
 
 // Kasir: Create transaction & Pay (Hanya untuk MENU_POS)
 router.post(

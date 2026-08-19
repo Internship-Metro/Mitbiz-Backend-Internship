@@ -207,6 +207,35 @@ export class AuthRepository {
 
     return expiredUsers.length;
   }
+
+  /**
+   * Cek apakah bisnis memiliki langganan aktif.
+   * Dipakai oleh login & getMe untuk mengembalikan flag hasActiveSubscription.
+   */
+  async findActiveSubscriptionByBusinessId(businessId: string) {
+    const now = new Date();
+    return prisma.businessSubscription.findFirst({
+      where: {
+        businessId,
+        status: 'ACTIVE',
+        endDate: { gt: now },
+      },
+      select: {
+        id: true,
+        endDate: true,
+        package: {
+          select: {
+            id: true,
+            name: true,
+            billingCycle: true,
+            maxBranches: true,
+            maxKasir: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }
 
 export const authRepository = new AuthRepository();

@@ -61,6 +61,39 @@ export class StaffService {
       if (!isValidRole) throw new AppError('Role tidak ditemukan atau bukan milik Anda', 400);
     }
 
+    // ── Validasi batas kasir berdasarkan paket langganan ─────────────────────
+    const { prisma } = await import('@/prisma/client');
+    const now = new Date();
+
+    const activeSubscription = await prisma.businessSubscription.findFirst({
+      where: {
+        businessId: requesterBusinessId,
+        status: 'ACTIVE',
+        endDate: { gt: now },
+      },
+      include: { package: { select: { maxKasir: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (activeSubscription) {
+      const currentStaffCount = await prisma.user.count({
+        where: {
+          businessId: requesterBusinessId,
+          role: 'STAFF',
+          deletedAt: null,
+        },
+      });
+
+      if (currentStaffCount >= activeSubscription.package.maxKasir) {
+        throw new AppError(
+          `Paket "${activeSubscription.package.name}" Anda hanya mengizinkan maksimal ${activeSubscription.package.maxKasir} kasir. ` +
+          `Anda sudah memiliki ${currentStaffCount} kasir. Upgrade paket untuk menambah lebih banyak kasir.`,
+          403,
+        );
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const hashedPassword = await hashPassword(data.password);
 
     const newUser = await userRepository.create({

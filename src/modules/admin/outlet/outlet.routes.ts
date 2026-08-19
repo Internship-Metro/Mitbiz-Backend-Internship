@@ -3,14 +3,15 @@ import { outletController } from './outlet.controller';
 import { validate } from '@common/pipes/zod-validation.pipe';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
+import { requireActiveSubscription } from '@common/guards/subscription.guard';
 import { MenuPermission } from '@prisma/client';
 import { CreateOutletDto } from './dto/create-outlet.dto';
 import { UpdateOutletDto } from './dto/update-outlet.dto';
 
 const router = Router();
 
-// Semua route outlet butuh login
-router.use(jwtAuthGuard);
+// Semua route outlet butuh login & langganan aktif
+router.use(jwtAuthGuard, requireActiveSubscription);
 
 // ─── GET /api/v1/outlets ──────────────────────────────────────────────────────
 // Super Admin: lihat semua outlet dari semua bisnis

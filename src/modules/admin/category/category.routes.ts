@@ -2,12 +2,13 @@ import { Router } from 'express';
 import { categoryController } from './category.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
+import { requireActiveSubscription } from '@common/guards/subscription.guard';
 import { MenuPermission } from '@prisma/client';
 
 const router = Router();
 
-// Semua rute kategori wajib login dan punya outletId
-router.use(jwtAuthGuard);
+// Semua rute kategori wajib login dan langganan aktif
+router.use(jwtAuthGuard, requireActiveSubscription);
 // Secara default, Owner yang tidak punya outletId spesifik (null) tidak bisa 
 // memanipulasi kategori cabang langsung via API ini kecuali dia punya cabang.
 // Namun di skenario kita, ADMIN dan KASIR adalah pengguna utama modul ini.
