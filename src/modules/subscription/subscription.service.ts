@@ -46,9 +46,6 @@ export class SubscriptionService {
         unit: 'hours',
         duration: 24,
       },
-      callbacks: {
-        notification: `${env.APP_URL}/api/v1/subscriptions/webhook`,
-      },
     } as any);
 
     // 5. Simpan record pembayaran ke database (status PENDING)
