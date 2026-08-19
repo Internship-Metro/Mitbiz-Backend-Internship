@@ -152,6 +152,9 @@ model Business {
   status            BusinessStatus @default(ACTIVE) // Status bisnis: ACTIVE / INACTIVE / SUSPENDED
   isTaxEnabled      Boolean        @default(false) // Apakah transaksi dikenakan pajak
   taxPercentage     Float? // Persentase pajak global
+  isDiscountEnabled Boolean        @default(false) // Apakah fitur diskon global aktif
+  globalDiscountPercentage  Float? // Persentase diskon global (misal: 10)
+  globalDiscountMinPurchase Int? // Minimal pembelian untuk mendapat diskon global (Rupiah)
   createdAt         DateTime       @default(now()) // Waktu pertama kali bisnis didaftarkan ke platform
   updatedAt         DateTime       @updatedAt // Waktu terakhir data bisnis diubah (otomatis diperbarui)
   deletedAt         DateTime? // Soft delete: diisi saat bisnis dihapus, null = masih aktif
@@ -555,7 +558,9 @@ model Transaction {
   tableNumber     String? // Nomor meja (untuk Dine In)
   subtotal        Int // Total harga semua item sebelum pajak diterapkan (Rupiah)
   taxAmount       Int               @default(0) // Jumlah pajak yang dikenakan (e.g. PPN 12%) dalam Rupiah
-  totalAmount     Int // Total akhir yang harus dibayar pelanggan (subtotal + pajak)
+  globalDiscountPercentage Float?   // Snapshot persentase diskon global (jika diterapkan)
+  globalDiscountAmount     Int      @default(0) // Jumlah nominal potongan diskon global dalam Rupiah
+  totalAmount     Int // Total akhir yang harus dibayar pelanggan (subtotal - diskon + pajak)
   amountPaid      Int               @default(0) // Jumlah uang yang diterima dari pelanggan (0 jika Open Bill / PENDING)
   changeAmount    Int               @default(0) // Kembalian yang diberikan ke pelanggan (amountPaid - totalAmount)
   notes           String? // Catatan tambahan dari kasir untuk transaksi ini (opsional)

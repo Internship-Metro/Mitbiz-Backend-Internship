@@ -100,10 +100,24 @@ export class TransactionService {
       });
     }
 
-    // 4. Kalkulasi Total Akhir (Backend as Source of Truth)
-    // Total = subtotal + pajak (tidak ada diskon per-nota)
-    const taxAmount = isTaxEnabled ? Math.round((subtotal * taxPercentage) / 100) : 0;
-    const totalAmount = subtotal + taxAmount;
+    // 4. Kalkulasi Diskon Global & Total Akhir (Backend as Source of Truth)
+    const { isDiscountEnabled, globalDiscountPercentage, globalDiscountMinPurchase } = outlet.business;
+    
+    let globalDiscountAmount = 0;
+    let appliedGlobalDiscountPercentage: number | null = null;
+
+    if (isDiscountEnabled && globalDiscountPercentage && globalDiscountMinPurchase) {
+      if (subtotal >= globalDiscountMinPurchase) {
+        appliedGlobalDiscountPercentage = globalDiscountPercentage;
+        globalDiscountAmount = Math.round((subtotal * globalDiscountPercentage) / 100);
+      }
+    }
+
+    const subtotalAfterDiscount = subtotal - globalDiscountAmount;
+
+    // Total = subtotal setelah diskon + pajak
+    const taxAmount = isTaxEnabled ? Math.round((subtotalAfterDiscount * taxPercentage) / 100) : 0;
+    const totalAmount = subtotalAfterDiscount + taxAmount;
 
     // 5. Tentukan Status (PENDING atau COMPLETED)
     const amountPaid = payload.amountPaid || 0;
@@ -137,6 +151,8 @@ export class TransactionService {
       tableNumber: payload.tableNumber,
       paymentMethodId,
       subtotal,
+      globalDiscountPercentage: appliedGlobalDiscountPercentage,
+      globalDiscountAmount,
       taxAmount,
       totalAmount,
       amountPaid,

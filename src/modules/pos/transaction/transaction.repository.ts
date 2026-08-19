@@ -12,6 +12,8 @@ export interface CreateTransactionInput {
   tableNumber?: string;
   paymentMethodId?: string;
   subtotal: number;
+  globalDiscountPercentage?: number | null;
+  globalDiscountAmount: number;
   taxAmount: number;
   totalAmount: number;
   amountPaid: number;
@@ -48,6 +50,8 @@ export class TransactionRepository {
           customerName: data.customerName,
           tableNumber: data.tableNumber,
           subtotal: data.subtotal,
+          globalDiscountPercentage: data.globalDiscountPercentage,
+          globalDiscountAmount: data.globalDiscountAmount,
           taxAmount: data.taxAmount,
           totalAmount: data.totalAmount,
           amountPaid: data.amountPaid,
