@@ -2,31 +2,43 @@ import { Router } from 'express';
 import { stockController } from './stock.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
-import { MenuPermission } from '@prisma/client';
 
 const stockRouter = Router();
 
-// Semua endpoint stock wajib login
 stockRouter.use(jwtAuthGuard);
 
-// GET /api/v1/stocks - kasir (MENU_POS) dan admin (MENU_STOCK) bisa lihat stok
-stockRouter.get('/', requirePermissions([MenuPermission.MENU_STOCK, MenuPermission.MENU_POS]), stockController.getStocks);
+// GET stok: kasir (MENU_POS READ) dan admin (MENU_STOCK READ) bisa lihat
+stockRouter.get(
+  '/',
+  requirePermissions([
+    { menu: 'MENU_STOCK', action: 'READ' },
+    { menu: 'MENU_POS', action: 'READ' },
+  ]),
+  stockController.getStocks
+);
 
-// GET /api/v1/stocks/adjustments - hanya admin
+// Riwayat adjustment: hanya yang punya MENU_STOCK_ADJUSTMENT READ
 stockRouter.get(
   '/adjustments',
-  requirePermissions([MenuPermission.MENU_STOCK_ADJUSTMENT]),
+  requirePermissions([{ menu: 'MENU_STOCK_ADJUSTMENT', action: 'READ' }]),
   stockController.getAdjustments
 );
 
-// PATCH /api/v1/stocks/adjust - hanya admin
+// Buat adjustment stok: hanya yang punya MENU_STOCK_ADJUSTMENT CREATE
 stockRouter.patch(
   '/adjust',
-  requirePermissions([MenuPermission.MENU_STOCK_ADJUSTMENT]),
+  requirePermissions([{ menu: 'MENU_STOCK_ADJUSTMENT', action: 'CREATE' }]),
   stockController.adjustStock
 );
 
-// GET /api/v1/stocks/:productId - kasir (MENU_POS) dan admin (MENU_STOCK) bisa lihat detail stok
-stockRouter.get('/:productId', requirePermissions([MenuPermission.MENU_STOCK, MenuPermission.MENU_POS]), stockController.getStockDetail);
+// Detail stok produk: kasir (MENU_POS READ) dan admin (MENU_STOCK READ) bisa lihat
+stockRouter.get(
+  '/:productId',
+  requirePermissions([
+    { menu: 'MENU_STOCK', action: 'READ' },
+    { menu: 'MENU_POS', action: 'READ' },
+  ]),
+  stockController.getStockDetail
+);
 
 export default stockRouter;

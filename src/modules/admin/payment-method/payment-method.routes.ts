@@ -2,33 +2,33 @@ import { Router } from 'express';
 import { paymentMethodController } from './payment-method.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
-import { MenuPermission } from '@prisma/client';
 
 const router = Router();
 
-// ==========================================
-// TINGKAT BISNIS (Hanya Admin)
-// ==========================================
-// Endpoint: /api/v1/payment-methods
-
 router.use('/payment-methods', jwtAuthGuard);
 
-router.get('/payment-methods', requirePermissions(['MENU_PAYMENT']), paymentMethodController.getMethods);
-router.post('/payment-methods', requirePermissions(['MENU_PAYMENT']), paymentMethodController.createMethod);
-router.patch('/payment-methods/:id', requirePermissions(['MENU_PAYMENT']), paymentMethodController.updateMethod);
-router.delete('/payment-methods/:id', requirePermissions(['MENU_PAYMENT']), paymentMethodController.deleteMethod);
+// ─── TINGKAT BISNIS (hanya yang punya akses MENU_PAYMENT) ────────────────────
+router.get('/payment-methods', requirePermissions([{ menu: 'MENU_PAYMENT', action: 'READ' }]), paymentMethodController.getMethods);
+router.post('/payment-methods', requirePermissions([{ menu: 'MENU_PAYMENT', action: 'CREATE' }]), paymentMethodController.createMethod);
+router.patch('/payment-methods/:id', requirePermissions([{ menu: 'MENU_PAYMENT', action: 'UPDATE' }]), paymentMethodController.updateMethod);
+router.delete('/payment-methods/:id', requirePermissions([{ menu: 'MENU_PAYMENT', action: 'DELETE' }]), paymentMethodController.deleteMethod);
 
-
-// ==========================================
-// TINGKAT CABANG / OUTLET
-// ==========================================
-// Endpoint: /api/v1/outlets/:outletId/payment-methods
-
-// Bisa diakses oleh Kasir (STAFF) dan Admin
+// ─── TINGKAT CABANG ───────────────────────────────────────────────────────────
+// GET: Terbuka untuk Kasir dan Admin (tidak butuh permission MENU_PAYMENT)
 router.get('/outlets/:outletId/payment-methods', jwtAuthGuard, paymentMethodController.getActiveMethodsByBranch);
 
-// Hanya bisa diatur oleh user yang punya akses MENU_PAYMENT (Admin / Staff yang diberi izin)
-router.post('/outlets/:outletId/payment-methods', jwtAuthGuard, requirePermissions(['MENU_PAYMENT']), paymentMethodController.activateInBranch);
-router.delete('/outlets/:outletId/payment-methods/:id', jwtAuthGuard, requirePermissions(['MENU_PAYMENT']), paymentMethodController.deactivateInBranch);
+// Aktivasi/Deaktivasi metode per outlet: butuh MENU_PAYMENT
+router.post(
+  '/outlets/:outletId/payment-methods',
+  jwtAuthGuard,
+  requirePermissions([{ menu: 'MENU_PAYMENT', action: 'CREATE' }]),
+  paymentMethodController.activateInBranch
+);
+router.delete(
+  '/outlets/:outletId/payment-methods/:id',
+  jwtAuthGuard,
+  requirePermissions([{ menu: 'MENU_PAYMENT', action: 'DELETE' }]),
+  paymentMethodController.deactivateInBranch
+);
 
 export default router;

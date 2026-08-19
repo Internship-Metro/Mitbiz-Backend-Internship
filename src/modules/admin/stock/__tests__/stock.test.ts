@@ -54,7 +54,7 @@ describe('Stock Module', () => {
       data: {
         businessId: business.id,
         name: 'Kasir',
-        permissions: ['MENU_POS', 'MENU_STOCK']
+        permissions: { create: [{ menu: 'MENU_POS', canRead: true }, { menu: 'MENU_STOCK', canRead: true }] }
       }
     });
     staffRoleId = staffRole.id;
@@ -271,3 +271,4 @@ describe('Stock Module', () => {
     });
   });
 });
+

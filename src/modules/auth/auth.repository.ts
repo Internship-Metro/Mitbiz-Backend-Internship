@@ -10,21 +10,21 @@ export class AuthRepository {
   async findUserByEmail(email: string) {
     return prisma.user.findFirst({
       where: { email },
-      include: { customRole: true },
+      include: { customRole: { include: { permissions: true } } },
     });
   }
 
   async findByUsername(username: string) {
     return prisma.user.findFirst({
       where: { username },
-      include: { customRole: true },
+      include: { customRole: { include: { permissions: true } } },
     });
   }
 
   async findUserById(id: string) {
     return prisma.user.findUnique({
       where: { id },
-      include: { customRole: true },
+      include: { customRole: { include: { permissions: true } } },
     });
   }
 
@@ -164,7 +164,7 @@ export class AuthRepository {
   async findUserByVerificationToken(token: string) {
     return prisma.user.findUnique({
       where: { emailVerificationToken: token },
-      include: { customRole: true },
+      include: { customRole: { include: { permissions: true } } },
     });
   }
 

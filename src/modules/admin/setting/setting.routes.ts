@@ -5,10 +5,8 @@ import { requirePermissions } from '@common/guards/permissions.guard';
 
 export const adminSettingRouter = Router();
 
-// Protect semua endpoint dengan JWT
 adminSettingRouter.use(jwtAuthGuard);
-// Hanya user dengan permission MENU_SETTING (dan ADMIN) yang boleh akses
-adminSettingRouter.use(requirePermissions(['MENU_SETTING']));
+adminSettingRouter.use(requirePermissions([{ menu: 'MENU_SETTING', action: 'READ' }]));
 
 adminSettingRouter.get(
   '/business',
@@ -17,5 +15,6 @@ adminSettingRouter.get(
 
 adminSettingRouter.patch(
   '/business',
+  requirePermissions([{ menu: 'MENU_SETTING', action: 'UPDATE' }]),
   adminSettingController.updateSettings.bind(adminSettingController)
 );

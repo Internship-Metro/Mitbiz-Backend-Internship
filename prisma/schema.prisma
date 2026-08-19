@@ -170,23 +170,47 @@ model Business {
 }
 
 /// Role = Jabatan dinamis yang dibuat oleh Admin (misal: "Gudang", "Kasir Senior")
-/// Menentukan menu apa saja yang boleh diakses oleh Staff.
+/// Menentukan menu apa saja yang boleh diakses oleh Staff beserta aksi yang diperbolehkan (C/R/U/D).
 model Role {
-  id          String           @id @default(cuid()) // ID unik role
+  id          String   @id @default(cuid()) // ID unik role
   businessId  String // FK ke Business — Role ini milik bisnis mana
   name        String // Nama role, e.g. "Manajer", "Kasir"
-  permissions MenuPermission[] // Array permission (menu yang dicentang)
-  isDefault   Boolean          @default(false) // Jika true, role dasar tidak bisa dihapus
-  createdAt   DateTime         @default(now()) // Waktu dibuat
-  updatedAt   DateTime         @updatedAt // Waktu diubah
+  description String? // Deskripsi singkat tentang role ini (opsional)
+  isDefault   Boolean  @default(false) // Jika true, role dasar tidak bisa dihapus
+  createdAt   DateTime @default(now()) // Waktu dibuat
+  updatedAt   DateTime @updatedAt // Waktu diubah
 
   // Relasi
-  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  users    User[] // User yang memiliki role ini
+  business    Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  users       User[] // User yang memiliki role ini
+  permissions RolePermission[] // Matriks CRUD permission per menu
 
   @@unique([businessId, name]) // Nama role tidak boleh sama di satu bisnis
   @@index([businessId])
   @@map("role") // Nama tabel di database
+}
+
+/// RolePermission = Satu baris matriks akses untuk sebuah Role di satu menu tertentu.
+/// Masing-masing baris mendefinisikan aksi apa saja (Create, Read, Update, Delete)
+/// yang diperbolehkan untuk role tersebut pada menu tersebut.
+/// Contoh: Role "Supervisor" boleh Read & Update di MENU_PRODUCT, tapi tidak boleh Create atau Delete.
+model RolePermission {
+  id        String         @id @default(cuid()) // ID unik baris permission
+  roleId    String // FK ke Role
+  menu      MenuPermission // Menu yang diatur akses-nya (e.g. MENU_CABANG, MENU_PRODUCT)
+
+  // Matriks CRUD — default semua false (tidak ada akses)
+  canCreate Boolean @default(false) // Boleh membuat data baru di menu ini
+  canRead   Boolean @default(false) // Boleh melihat/membaca data di menu ini
+  canUpdate Boolean @default(false) // Boleh mengedit data di menu ini
+  canDelete Boolean @default(false) // Boleh menghapus data di menu ini
+
+  // Relasi
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, menu]) // Satu role hanya boleh punya 1 baris setting untuk setiap menu
+  @@index([roleId])
+  @@map("role_permission") // Nama tabel di database
 }
 
 /// Package = paket layanan yang ditawarkan Super Admin kepada Tenant.

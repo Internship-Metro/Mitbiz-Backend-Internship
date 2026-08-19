@@ -62,7 +62,7 @@ describe('Product Module', () => {
       data: {
         businessId: business.id,
         name: 'Kasir',
-        permissions: ['MENU_POS']
+        permissions: { create: [{ menu: 'MENU_POS', canRead: true }] }
       }
     });
     staffRoleId = staffRole.id;
@@ -228,3 +228,4 @@ describe('Product Module', () => {
     });
   });
 });
+

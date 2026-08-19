@@ -2,23 +2,22 @@ import { Router } from 'express';
 import { shiftController } from './shift.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
-import { MenuPermission } from '@prisma/client';
 
 const router = Router();
 
 router.use(jwtAuthGuard);
 
-// ─── GET /api/v1/shifts ────────────────────────────────────────────────────────
+// GET /api/v1/shifts — riwayat shift semua kasir (Admin view)
 router.get(
   '/',
-  requirePermissions([MenuPermission.MENU_SHIFT]),
+  requirePermissions([{ menu: 'MENU_SHIFT', action: 'READ' }]),
   shiftController.getAllShifts,
 );
 
-// ─── GET /api/v1/shifts/:id ────────────────────────────────────────────────────
+// GET /api/v1/shifts/:id — detail shift tertentu
 router.get(
   '/:id',
-  requirePermissions([MenuPermission.MENU_SHIFT]),
+  requirePermissions([{ menu: 'MENU_SHIFT', action: 'READ' }]),
   shiftController.getShiftById,
 );
 

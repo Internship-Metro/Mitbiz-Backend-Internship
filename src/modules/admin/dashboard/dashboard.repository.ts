@@ -112,7 +112,7 @@ export const dashboardRepository = {
             role: 'STAFF',
             deletedAt: null,
             customRole: {
-              permissions: { has: 'MENU_POS' },
+              permissions: { some: { menu: 'MENU_POS', canRead: true } },
             },
           },
         }),
@@ -123,7 +123,7 @@ export const dashboardRepository = {
             role: 'STAFF',
             deletedAt: null,
             customRole: {
-              permissions: { has: 'MENU_POS' },
+              permissions: { some: { menu: 'MENU_POS', canRead: true } },
             },
           },
         }),

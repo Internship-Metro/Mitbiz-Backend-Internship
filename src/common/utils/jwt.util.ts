@@ -14,7 +14,6 @@
 
 import jwt from 'jsonwebtoken';
 import { env } from '@config/env';
-import { MenuPermission } from '@prisma/client';
 
 // Interface isi payload JWT yang kita simpan di dalam token
 export interface JwtPayload {
@@ -22,7 +21,9 @@ export interface JwtPayload {
   role: string;
   businessId?: string | null;
   outletId?: string | null;
-  permissions?: MenuPermission[]; // Ditambahkan untuk akses granular STAFF
+  // customPermissions: matriks CRUD per menu untuk STAFF
+  // Format: { "MENU_CABANG": { canCreate: true, canRead: true, canUpdate: false, canDelete: false }, ... }
+  customPermissions?: Record<string, Record<string, boolean>>;
   type?: 'access' | 'refresh' | 'registration'; // registration: token 1 jam khusus resume pendaftaran
 }
 

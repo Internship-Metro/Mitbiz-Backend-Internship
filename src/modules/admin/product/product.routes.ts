@@ -3,21 +3,33 @@ import { ProductController } from './product.controller';
 import { jwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { requirePermissions } from '@common/guards/permissions.guard';
 import { uploadSingle } from '@common/middlewares/multer.middleware';
-import { MenuPermission } from '@prisma/client';
 
 const router = Router();
 const controller = new ProductController();
 
-// Semua rute produk memerlukan login
 router.use(jwtAuthGuard);
 
-// GET: Bisa diakses
-router.get('/', requirePermissions([MenuPermission.MENU_PRODUCT, MenuPermission.MENU_POS]), controller.getAllProducts);
-router.get('/:id', requirePermissions([MenuPermission.MENU_PRODUCT, MenuPermission.MENU_POS]), controller.getProductById);
+// GET: Kasir (MENU_POS READ) dan Admin (MENU_PRODUCT READ) bisa lihat produk
+router.get(
+  '/',
+  requirePermissions([
+    { menu: 'MENU_PRODUCT', action: 'READ' },
+    { menu: 'MENU_POS', action: 'READ' },
+  ]),
+  controller.getAllProducts
+);
+router.get(
+  '/:id',
+  requirePermissions([
+    { menu: 'MENU_PRODUCT', action: 'READ' },
+    { menu: 'MENU_POS', action: 'READ' },
+  ]),
+  controller.getProductById
+);
 
-// POST, PUT, DELETE: Bisa diakses
-router.post('/', requirePermissions([MenuPermission.MENU_PRODUCT]), uploadSingle, controller.createProduct);
-router.patch('/:id', requirePermissions([MenuPermission.MENU_PRODUCT]), uploadSingle, controller.updateProduct);
-router.delete('/:id', requirePermissions([MenuPermission.MENU_PRODUCT]), controller.deleteProduct);
+// Write: Hanya yang punya akses MENU_PRODUCT
+router.post('/', requirePermissions([{ menu: 'MENU_PRODUCT', action: 'CREATE' }]), uploadSingle, controller.createProduct);
+router.patch('/:id', requirePermissions([{ menu: 'MENU_PRODUCT', action: 'UPDATE' }]), uploadSingle, controller.updateProduct);
+router.delete('/:id', requirePermissions([{ menu: 'MENU_PRODUCT', action: 'DELETE' }]), controller.deleteProduct);
 
 export default router;

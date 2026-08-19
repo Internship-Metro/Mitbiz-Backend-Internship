@@ -11,6 +11,26 @@ import { sendVerificationEmail } from '@common/utils/email.util';
 import { env } from '@config/env';
 import { randomUUID } from 'crypto';
 
+// Helper: Konversi RolePermission[] (dari DB) ke format matriks JWT
+// Input : [{ menu: 'MENU_CABANG', canCreate: true, canRead: true, canUpdate: false, canDelete: false }]
+// Output: { "MENU_CABANG": { canCreate: true, canRead: true, canUpdate: false, canDelete: false } }
+function buildCustomPermissions(
+  rolePermissions?: { menu: string; canCreate: boolean; canRead: boolean; canUpdate: boolean; canDelete: boolean }[]
+): Record<string, Record<string, boolean>> | undefined {
+  if (!rolePermissions || rolePermissions.length === 0) return undefined;
+
+  const result: Record<string, Record<string, boolean>> = {};
+  for (const rp of rolePermissions) {
+    result[rp.menu] = {
+      canCreate: rp.canCreate,
+      canRead: rp.canRead,
+      canUpdate: rp.canUpdate,
+      canDelete: rp.canDelete,
+    };
+  }
+  return result;
+}
+
 // Helper: generate pasangan access + refresh token
 function generateTokenPair(payload: Omit<JwtPayload, 'type'>) {
   const accessToken  = signToken(payload);         // berlaku 1 jam (sesuai JWT_EXPIRES_IN di .env)
@@ -19,10 +39,15 @@ function generateTokenPair(payload: Omit<JwtPayload, 'type'>) {
 }
 
 // Helper: Penentuan halaman tujuan setelah login (Portal Target)
-function getPortalTarget(role: string, permissions?: string[]): string {
+// customPermissions format baru: { "MENU_POS": { canCreate: false, canRead: true, ... }, ... }
+function getPortalTarget(
+  role: string,
+  customPermissions?: Record<string, Record<string, boolean>>
+): string {
   if (role === 'SUPER_ADMIN') return 'SUPER_ADMIN';
   if (role === 'ADMIN') return 'ADMIN';
-  if (permissions && permissions.includes('MENU_POS')) return 'POS';
+  // Kasir: punya entri MENU_POS di customPermissions (minimal canRead = true)
+  if (customPermissions && customPermissions['MENU_POS']?.canRead) return 'POS';
   return 'ADMIN';
 }
 
@@ -313,17 +338,20 @@ export class AuthService {
 
     await authRepository.updateLastLogin(user.id);
 
+    // Konversi RolePermission[] ke format matriks untuk JWT
+    const customPermissions = buildCustomPermissions(user.customRole?.permissions);
+
     const { accessToken, refreshToken } = generateTokenPair({
       userId: user.id,
       role: user.role,
       businessId: user.businessId,
       outletId: user.outletId,
-      permissions: user.customRole?.permissions,
+      customPermissions,
     });
 
     return {
       requiresRegistration: false,
-      portalTarget: getPortalTarget(user.role, user.customRole?.permissions),
+      portalTarget: getPortalTarget(user.role, customPermissions),
       user: {
         id: user.id,
         name: user.name,
@@ -358,17 +386,20 @@ export class AuthService {
 
     await authRepository.markEmailAsVerified(user.id);
 
+    // Konversi RolePermission[] ke format matriks untuk JWT
+    const customPermissions = buildCustomPermissions(user.customRole?.permissions);
+
     // Setelah verifikasi, langsung kasih access token lengkap untuk login
     const { accessToken, refreshToken } = generateTokenPair({
       userId: user.id,
       role: user.role,
       businessId: user.businessId ?? undefined,
       outletId: user.outletId ?? undefined,
-      permissions: user.customRole?.permissions,
+      customPermissions,
     });
 
     return {
-      portalTarget: getPortalTarget(user.role, user.customRole?.permissions),
+      portalTarget: getPortalTarget(user.role, customPermissions),
       user: {
         id: user.id,
         name: user.name,
@@ -442,12 +473,13 @@ export class AuthService {
     if (!user.emailVerifiedAt) throw new AppError('Email belum diverifikasi.', 403);
 
     // Generate access token baru
+    const customPermissions = buildCustomPermissions(user.customRole?.permissions);
     const newAccessToken = signToken({
       userId: user.id,
       role: user.role,
       businessId: user.businessId ?? undefined,
       outletId: user.outletId ?? undefined,
-      permissions: user.customRole?.permissions,
+      customPermissions,
     });
 
     return { accessToken: newAccessToken };

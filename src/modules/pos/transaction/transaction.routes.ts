@@ -3,7 +3,6 @@ import { TransactionController } from './transaction.controller';
 import { jwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { requirePermissions } from '../../../common/guards/permissions.guard';
 import { validate } from '../../../common/pipes/zod-validation.pipe';
-import { MenuPermission } from '@prisma/client';
 import {
   createTransactionSchema,
 } from './dto/create-transaction.dto';
@@ -13,40 +12,50 @@ import { voidTransactionSchema } from './dto/void-transaction.dto';
 const router = Router();
 const controller = new TransactionController();
 
-router.use(jwtAuthGuard); // Semua route butuh login (Kasir/Admin)
+router.use(jwtAuthGuard);
 
-// Kasir: Create transaction & Pay (Hanya untuk MENU_POS)
+// Kasir: buat transaksi baru (hanya MENU_POS)
 router.post(
   '/',
-  requirePermissions([MenuPermission.MENU_POS]),
+  requirePermissions([{ menu: 'MENU_POS', action: 'CREATE' }]),
   validate(createTransactionSchema),
   controller.createTransaction
 );
 
+// Kasir: bayar transaksi
 router.patch(
   '/:id/pay',
-  requirePermissions([MenuPermission.MENU_POS]),
+  requirePermissions([{ menu: 'MENU_POS', action: 'UPDATE' }]),
   validate(payTransactionSchema),
   controller.payTransaction
 );
 
-// Admin / Kasir dengan izin: Void transaction
+// Void (batalkan): kasir (MENU_POS) ATAU admin yang punya MENU_TRANSACTION_HISTORY
 router.delete(
   '/:id',
-  requirePermissions([MenuPermission.MENU_POS, MenuPermission.MENU_TRANSACTION_HISTORY]),
+  requirePermissions([
+    { menu: 'MENU_POS', action: 'DELETE' },
+    { menu: 'MENU_TRANSACTION_HISTORY', action: 'DELETE' },
+  ]),
   validate(voidTransactionSchema),
   controller.voidTransaction
 );
 
-// Read transactions
+// Read transaksi: kasir (MENU_POS) ATAU admin (MENU_TRANSACTION_HISTORY)
 router.get(
-  '/', 
-  requirePermissions([MenuPermission.MENU_POS, MenuPermission.MENU_TRANSACTION_HISTORY]),
+  '/',
+  requirePermissions([
+    { menu: 'MENU_POS', action: 'READ' },
+    { menu: 'MENU_TRANSACTION_HISTORY', action: 'READ' },
+  ]),
   controller.getTransactions
 );
 router.get(
-  '/:id', 
-  requirePermissions([MenuPermission.MENU_POS, MenuPermission.MENU_TRANSACTION_HISTORY]),
+  '/:id',
+  requirePermissions([
+    { menu: 'MENU_POS', action: 'READ' },
+    { menu: 'MENU_TRANSACTION_HISTORY', action: 'READ' },
+  ]),
   controller.getTransactionById
 );
 

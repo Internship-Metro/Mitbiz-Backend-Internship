@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { CreateRoleType } from './dto/create-role.dto';
 import { UpdateRoleType } from './dto/update-role.dto';
 
@@ -10,8 +10,18 @@ export class RoleRepository {
       data: {
         businessId,
         name: data.name,
-        permissions: data.permissions,
+        description: data.description,
+        permissions: {
+          create: data.permissions.map((p) => ({
+            menu: p.menu,
+            canCreate: p.canCreate,
+            canRead: p.canRead,
+            canUpdate: p.canUpdate,
+            canDelete: p.canDelete,
+          })),
+        },
       },
+      include: { permissions: true },
     });
   }
 
@@ -20,6 +30,7 @@ export class RoleRepository {
       where: { businessId },
       orderBy: { createdAt: 'desc' },
       include: {
+        permissions: true,
         _count: {
           select: { users: { where: { deletedAt: null } } },
         },
@@ -31,6 +42,7 @@ export class RoleRepository {
     return prisma.role.findUnique({
       where: { id },
       include: {
+        permissions: true,
         _count: {
           select: { users: { where: { deletedAt: null } } },
         },
@@ -44,10 +56,40 @@ export class RoleRepository {
     });
   }
 
+  /**
+   * Update role: upsert permissions menggunakan deleteMany + createMany
+   * agar matriks CRUD selalu bersih saat admin mengubah permission.
+   */
   async update(id: string, data: UpdateRoleType) {
-    return prisma.role.update({
-      where: { id },
-      data,
+    return prisma.$transaction(async (tx) => {
+      // Update nama & deskripsi role
+      await tx.role.update({
+        where: { id },
+        data: {
+          ...(data.name && { name: data.name }),
+          ...(data.description !== undefined && { description: data.description }),
+        },
+      });
+
+      // Jika permissions disertakan, replace seluruh matriks
+      if (data.permissions && data.permissions.length > 0) {
+        await tx.rolePermission.deleteMany({ where: { roleId: id } });
+        await tx.rolePermission.createMany({
+          data: data.permissions.map((p) => ({
+            roleId: id,
+            menu: p.menu,
+            canCreate: p.canCreate ?? false,
+            canRead: p.canRead ?? false,
+            canUpdate: p.canUpdate ?? false,
+            canDelete: p.canDelete ?? false,
+          })),
+        });
+      }
+
+      return tx.role.findUnique({
+        where: { id },
+        include: { permissions: true },
+      });
     });
   }
 
