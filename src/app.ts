@@ -44,6 +44,7 @@ import settingRoutes from './modules/super-admin/setting/setting.routes';
 import { adminSettingRouter } from './modules/admin/setting/setting.routes';
 import packageRoutes from './modules/super-admin/package/package.routes';
 import subscriptionRoutes from './modules/subscription/subscription.routes';
+import posConfigRoutes from './modules/pos/config/pos-config.routes';
 // TODO: Import route modules di sini saat setiap modul selesai dibuat
 
 const app: Application = express();
@@ -116,6 +117,7 @@ app.use('/api/v1/settings', settingRoutes);
 app.use('/api/v1/admin/settings', adminSettingRouter);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
+app.use('/api/v1/pos', posConfigRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────
 // Tangkap semua request ke endpoint yang tidak ada
