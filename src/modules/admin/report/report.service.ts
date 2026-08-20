@@ -1,5 +1,6 @@
 import { reportRepository } from './report.repository';
 import ExcelJS from 'exceljs';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const PdfPrinter = require('pdfmake');
 
 export const reportService = {
