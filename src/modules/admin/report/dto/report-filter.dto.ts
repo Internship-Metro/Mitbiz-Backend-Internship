@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export const reportFilterSchema = z.object({
-  startDate: z.string({ message: 'startDate is required' }).refine((date) => !isNaN(Date.parse(date)), { message: 'Invalid startDate format' }),
-  endDate: z.string({ message: 'endDate is required' }).refine((date) => !isNaN(Date.parse(date)), { message: 'Invalid endDate format' }),
+  startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: 'Format startDate tidak valid (gunakan YYYY-MM-DD)' }).optional(),
+  endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: 'Format endDate tidak valid (gunakan YYYY-MM-DD)' }).optional(),
   branchId: z.string().optional(),
   businessId: z.string().optional(),
   format: z.enum(['json', 'excel', 'pdf']).optional(),

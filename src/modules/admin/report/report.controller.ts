@@ -10,18 +10,27 @@ export const reportController = {
       const parsedQuery = reportFilterSchema.safeParse(req.query);
 
       if (!parsedQuery.success) {
-        return sendError(res, (parsedQuery.error as any)?.errors?.[0]?.message || 'Invalid query', 400);
+        const firstIssue = parsedQuery.error.issues?.[0];
+        const errorMessage = firstIssue?.message || `Field '${String(firstIssue?.path?.[0] ?? 'unknown')}' tidak valid`;
+        console.error('[Report] Validation error:', parsedQuery.error.issues);
+        return sendError(res, errorMessage, 400);
       }
 
+      // Validasi: startDate & endDate wajib untuk laporan penjualan
+      if (!parsedQuery.data.startDate || !parsedQuery.data.endDate) {
+        return sendError(res, 'Parameter startDate dan endDate wajib diisi (format: YYYY-MM-DD)', 400);
+      }
+
+      const startDate = new Date(parsedQuery.data.startDate);
+      const endDate = new Date(parsedQuery.data.endDate);
+      endDate.setHours(23, 59, 59, 999);
+
       const filters = {
-        startDate: new Date(parsedQuery.data.startDate),
-        endDate: new Date(parsedQuery.data.endDate),
+        startDate,
+        endDate,
         branchId: parsedQuery.data.branchId,
         businessId: parsedQuery.data.businessId,
       };
-
-      // Ensure endDate covers the whole day by setting to 23:59:59
-      filters.endDate.setHours(23, 59, 59, 999);
 
       const data = await reportService.getSalesData(user, filters);
       return sendSuccess(res, data, 'Berhasil mengambil laporan', 200);
@@ -36,22 +45,33 @@ export const reportController = {
       const parsedQuery = reportFilterSchema.safeParse(req.query);
 
       if (!parsedQuery.success) {
-        return sendError(res, (parsedQuery.error as any)?.errors?.[0]?.message || 'Invalid query', 400);
+        const firstIssue = parsedQuery.error.issues?.[0];
+        const errorMessage = firstIssue?.message || `Field '${String(firstIssue?.path?.[0] ?? 'unknown')}' tidak valid`;
+        console.error('[Report] Export validation error:', parsedQuery.error.issues);
+        return sendError(res, errorMessage, 400);
+      }
+
+      // Validasi: startDate & endDate wajib untuk export
+      if (!parsedQuery.data.startDate || !parsedQuery.data.endDate) {
+        return sendError(res, 'Parameter startDate dan endDate wajib diisi (format: YYYY-MM-DD)', 400);
       }
 
       const format = parsedQuery.data.format || 'excel';
 
+      const startDate = new Date(parsedQuery.data.startDate);
+      const endDate = new Date(parsedQuery.data.endDate);
+      endDate.setHours(23, 59, 59, 999);
+
       const filters = {
-        startDate: new Date(parsedQuery.data.startDate),
-        endDate: new Date(parsedQuery.data.endDate),
+        startDate,
+        endDate,
         branchId: parsedQuery.data.branchId,
         businessId: parsedQuery.data.businessId,
       };
-      filters.endDate.setHours(23, 59, 59, 999);
 
       const data = await reportService.getSalesData(user, filters);
-      const startStr = filters.startDate.toISOString().split('T')[0];
-      const endStr = filters.endDate.toISOString().split('T')[0];
+      const startStr = startDate.toISOString().split('T')[0];
+      const endStr = endDate.toISOString().split('T')[0];
 
       if (format === 'pdf') {
         const buffer = await reportService.generatePdfReport(data, startStr, endStr);
@@ -75,16 +95,27 @@ export const reportController = {
       const parsedQuery = reportFilterSchema.safeParse(req.query);
 
       if (!parsedQuery.success) {
-        return sendError(res, (parsedQuery.error as any)?.errors?.[0]?.message || 'Invalid query', 400);
+        const firstIssue = parsedQuery.error.issues?.[0];
+        const errorMessage = firstIssue?.message || `Field '${String(firstIssue?.path?.[0] ?? 'unknown')}' tidak valid`;
+        console.error('[Report] Top products validation error:', parsedQuery.error.issues);
+        return sendError(res, errorMessage, 400);
       }
 
+      // Validasi: startDate & endDate wajib untuk laporan produk terlaris
+      if (!parsedQuery.data.startDate || !parsedQuery.data.endDate) {
+        return sendError(res, 'Parameter startDate dan endDate wajib diisi (format: YYYY-MM-DD)', 400);
+      }
+
+      const startDate = new Date(parsedQuery.data.startDate);
+      const endDate = new Date(parsedQuery.data.endDate);
+      endDate.setHours(23, 59, 59, 999);
+
       const filters = {
-        startDate: new Date(parsedQuery.data.startDate),
-        endDate: new Date(parsedQuery.data.endDate),
+        startDate,
+        endDate,
         branchId: parsedQuery.data.branchId,
         businessId: parsedQuery.data.businessId,
       };
-      filters.endDate.setHours(23, 59, 59, 999);
 
       const data = await reportService.getTopProducts(user, filters);
       return sendSuccess(res, data, 'Berhasil mengambil laporan produk terlaris', 200);
@@ -96,11 +127,14 @@ export const reportController = {
   async getStocks(req: Request, res: Response) {
     try {
       const user = req.user as any;
-      // We still parse the query to extract branchId, but dates are ignored for stocks
+      // Stok tidak butuh tanggal — hanya branchId & businessId yang dipakai
       const parsedQuery = reportFilterSchema.safeParse(req.query);
 
       if (!parsedQuery.success) {
-        return sendError(res, (parsedQuery.error as any)?.errors?.[0]?.message || 'Invalid query', 400);
+        const firstIssue = parsedQuery.error.issues?.[0];
+        const errorMessage = firstIssue?.message || `Field '${String(firstIssue?.path?.[0] ?? 'unknown')}' tidak valid`;
+        console.error('[Report] Stocks validation error:', parsedQuery.error.issues);
+        return sendError(res, errorMessage, 400);
       }
 
       const filters = {
