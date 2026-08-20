@@ -75,27 +75,17 @@ export class TransactionRepository {
         },
       });
 
-      // 2. Decrement Stocks & Catat Stock Adjustment
+      // 2. Decrement Stocks
+      // Stok otomatis berkurang saat transaksi. Riwayat mutasi stok akibat penjualan
+      // sudah tercatat di tabel Transaction & TransactionItems — tidak perlu duplikasi
+      // ke StockAdjustment. StockAdjustment hanya untuk koreksi manual oleh admin.
       for (const item of data.items) {
-        // Kurangi stok
         await tx.stock.update({
           where: { productId_outletId: { productId: item.productId, outletId: data.outletId } },
           data: {
             quantity: {
               decrement: item.quantity,
             },
-          },
-        });
-
-        // Audit Trail Penjualan
-        await tx.stockAdjustment.create({
-          data: {
-            outletId: data.outletId,
-            productId: item.productId,
-            userId: data.kasirId,
-            type: 'OUT',
-            quantity: item.quantity,
-            notes: `Terjual di Invoice ${data.invoiceNumber}`,
           },
         });
       }
@@ -268,23 +258,14 @@ export class TransactionRepository {
         include: { items: true },
       });
 
-      // 2. Restore stocks & hapus audit trail lama (atau buat audit trail baru tipe IN/CORRECTION)
-      // Profesional POS biasanya membuat audit trail baru tipe CORRECTION
+      // 2. Restore stocks
+      // Stok dikembalikan saat void transaksi. Riwayat void sudah tercatat di tabel
+      // Transaction (status VOIDED, voidReason). Tidak perlu duplikasi ke StockAdjustment.
       for (const item of transaction.items) {
         await tx.stock.update({
           where: { productId_outletId: { productId: item.productId, outletId: transaction.outletId } },
           data: {
             quantity: { increment: item.quantity },
-          },
-        });
-
-        await tx.stockAdjustment.create({
-          data: {
-            outletId: transaction.outletId,
-            productId: item.productId,
-            type: 'IN',
-            quantity: item.quantity,
-            notes: `Void Transaksi ${transaction.invoiceNumber}: ${voidReason}`,
           },
         });
       }
