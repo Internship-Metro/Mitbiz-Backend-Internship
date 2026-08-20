@@ -203,6 +203,14 @@ export class TransactionService {
       throw new AppError(`Uang yang dibayar (Rp ${payload.amountPaid}) kurang dari total tagihan (Rp ${transaction.totalAmount})`, 400);
     }
 
+    // Validasi paymentMethodId — mencegah Foreign Key error 500 jika ID tidak valid
+    const paymentMethod = await prisma.paymentMethod.findFirst({
+      where: { id: payload.paymentMethodId, deletedAt: null },
+    });
+    if (!paymentMethod) {
+      throw new AppError('Metode pembayaran tidak ditemukan atau sudah dihapus', 404);
+    }
+
     const changeAmount = payload.amountPaid - transaction.totalAmount;
     let newNotes = transaction.notes;
     if (payload.notes) {
@@ -216,6 +224,7 @@ export class TransactionService {
       notes: newNotes || undefined,
     });
   }
+
 
   async voidTransaction(outletId: string, id: string, payload: VoidTransactionDto) {
     const transaction = await this.getTransactionById(outletId, id);
