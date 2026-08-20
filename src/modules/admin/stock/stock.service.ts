@@ -105,7 +105,8 @@ export class StockService {
       adjustmentQuantity,
       type,
       notes,
-      userId
+      userId,
+      data.minQuantity
     );
 
     return result.updatedStock;

@@ -33,6 +33,13 @@ export const createProductSchema = z.object({
       .default(0)
   ),
   categoryId: z.string().cuid('Kategori wajib dipilih (Format ID tidak valid)'),
+  minQuantity: z.preprocess(
+    (val) => (val === undefined || val === '' ? undefined : Number(val)),
+    z.number({ message: 'Batas minimum stok harus berupa angka' })
+      .min(0, 'Batas minimum stok minimal 0')
+      .optional()
+      .default(0)
+  ),
   status: z.preprocess(
     (val) => (val === '' ? undefined : val),
     z.nativeEnum(ProductStatus).default(ProductStatus.ACTIVE).optional()

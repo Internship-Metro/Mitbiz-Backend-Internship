@@ -106,13 +106,17 @@ export class StockRepository {
     adjustmentQuantity: number, // selisihnya
     type: StockAdjustmentType,
     notes: string,
-    userId: string
+    userId: string,
+    minQuantity?: number
   ) {
     return prisma.$transaction(async (tx) => {
-      // 1. Update stok
+      // 1. Update stok (kuantitas dan minQuantity jika diberikan)
       const updatedStock = await tx.stock.update({
         where: { id: stockId },
-        data: { quantity: newQuantity },
+        data: {
+          quantity: newQuantity,
+          ...(minQuantity !== undefined && { minQuantity }),
+        },
       });
 
       // 2. Catat riwayat

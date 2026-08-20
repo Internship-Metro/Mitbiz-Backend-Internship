@@ -75,14 +75,14 @@ export class ProductService {
         },
       });
 
-      // Create stock record (qty=0) for every outlet in this business
+      // Create stock record for every outlet in this business
       if (outlets.length > 0) {
         await tx.stock.createMany({
           data: outlets.map((outlet) => ({
             productId: product.id,
             outletId: outlet.id,
             quantity: 0,
-            minQuantity: 0,
+            minQuantity: data.minQuantity ?? 0,
           })),
           skipDuplicates: true,
         });
@@ -121,7 +121,15 @@ export class ProductService {
       // Note: We agreed not to delete the old image from Cloudinary for recovery/history purposes
     }
 
-    // 5. Update Product
+    // 5. Update minQuantity di semua cabang jika diberikan
+    if (data.minQuantity !== undefined) {
+      await prisma.stock.updateMany({
+        where: { productId: id },
+        data: { minQuantity: data.minQuantity },
+      });
+    }
+
+    // 6. Update Product
     return this.repository.update(id, {
       name: data.name,
       sku: data.sku,
