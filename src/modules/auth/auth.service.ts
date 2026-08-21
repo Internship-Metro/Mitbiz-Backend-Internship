@@ -22,7 +22,10 @@ function generateTokenPair(payload: Omit<JwtPayload, 'type'>) {
 function getPortalTarget(role: string, permissions?: string[]): string {
   if (role === 'SUPER_ADMIN') return 'SUPER_ADMIN';
   if (role === 'ADMIN') return 'ADMIN';
-  if (permissions && permissions.includes('MENU_POS')) return 'POS';
+  // STAFF → POS hanya jika SEMUA permission-nya adalah MENU_POS (atau tidak punya permission sama sekali)
+  // STAFF dengan permission admin (MENU_DASHBOARD, MENU_PRODUCT, dll) → ADMIN panel
+  const hasNonPosPermission = permissions?.some(p => p !== 'MENU_POS');
+  if (!hasNonPosPermission) return 'POS';
   return 'ADMIN';
 }
 
@@ -549,6 +552,8 @@ export class AuthService {
       businessId: user.businessId,
       outletId: user.outletId,
       avatarUrl: user.avatarUrl,
+      permissions: (user.customRole?.permissions ?? []) as string[], // Permissions dari custom role untuk routing frontend
+      portalTarget: getPortalTarget(user.role, user.customRole?.permissions), // Target portal untuk redirect
       ...subscriptionInfo,
     };
   }
