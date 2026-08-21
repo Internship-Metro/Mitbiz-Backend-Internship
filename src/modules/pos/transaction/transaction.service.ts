@@ -205,7 +205,7 @@ export class TransactionService {
 
     // Validasi paymentMethodId — mencegah Foreign Key error 500 jika ID tidak valid
     const paymentMethod = await prisma.paymentMethod.findFirst({
-      where: { id: payload.paymentMethodId, deletedAt: null },
+      where: { id: payload.paymentMethodId, isActive: true },
     });
     if (!paymentMethod) {
       throw new AppError('Metode pembayaran tidak ditemukan atau sudah dihapus', 404);
