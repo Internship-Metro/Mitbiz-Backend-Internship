@@ -553,6 +553,7 @@ model Transaction {
   shiftId         String? // FK ke Shift — transaksi masuk dalam sesi shift mana (opsional)
   paymentMethodId String? // FK ke PaymentMethod — metode yang dipakai pelanggan untuk bayar
   invoiceNumber   String            @unique // Nomor invoice unik, e.g. "INV/2026/03/00005"
+  queueNumber     Int?              // Nomor antrean yang reset tiap hari
   orderType       OrderType         @default(DINE_IN) // Tipe pesanan: DINE_IN (makan di tempat) atau TAKE_AWAY (dibawa pulang)
   customerName    String? // Nama pelanggan (untuk Dine In)
   tableNumber     String? // Nomor meja (untuk Dine In)

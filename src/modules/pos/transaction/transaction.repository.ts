@@ -7,6 +7,7 @@ export interface CreateTransactionInput {
   kasirId: string;
   shiftId: string | null;
   invoiceNumber: string;
+  queueNumber: number;
   orderType: any;
   customerName?: string;
   tableNumber?: string;
@@ -46,6 +47,7 @@ export class TransactionRepository {
           shiftId: data.shiftId,
           paymentMethodId: data.paymentMethodId,
           invoiceNumber: data.invoiceNumber,
+          queueNumber: data.queueNumber,
           orderType: data.orderType,
           customerName: data.customerName,
           tableNumber: data.tableNumber,

@@ -14,6 +14,33 @@ export const createTransactionSchema = z.object({
   amountPaid: z.number().min(0, { message: 'Amount paid cannot be negative' }).max(1000000000, { message: 'Maksimal nominal adalah 1 Miliar' }).optional(),
   notes: z.string().optional(),
   items: z.array(createTransactionItemSchema).min(1, { message: 'At least one item is required' }),
+}).superRefine((data, ctx) => {
+  if (data.orderType === 'DINE_IN') {
+    if (!data.customerName || data.customerName.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Nama pelanggan wajib diisi untuk pesanan Dine In',
+        path: ['customerName'],
+      });
+    }
+    if (!data.tableNumber || data.tableNumber.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Nomor meja wajib diisi untuk pesanan Dine In',
+        path: ['tableNumber'],
+      });
+    }
+  }
+
+  if (data.orderType === 'TAKE_AWAY') {
+    if (!data.customerName || data.customerName.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Nama pelanggan wajib diisi untuk pesanan Take Away',
+        path: ['customerName'],
+      });
+    }
+  }
 });
 
 export type CreateTransactionDto = z.infer<typeof createTransactionSchema>;

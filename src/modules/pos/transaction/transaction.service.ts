@@ -139,6 +139,27 @@ export class TransactionService {
       paymentMethodId = undefined; // Belum ada metode pembayaran
     }
 
+    // 5.5 Hitung Nomor Antrean (Reset Tiap Hari)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const lastTransaction = await prisma.transaction.findFirst({
+      where: {
+        outletId,
+        createdAt: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+      orderBy: {
+        queueNumber: 'desc', // Ambil yang paling besar hari ini
+      },
+    });
+
+    const queueNumber = lastTransaction?.queueNumber ? lastTransaction.queueNumber + 1 : 1;
+
     // 6. Simpan ke Database
     const invoiceNumber = this.generateInvoiceNumber();
     const transaction = await this.repository.createTransactionWithStockDeduction({
@@ -146,6 +167,7 @@ export class TransactionService {
       kasirId,
       shiftId: activeShift.id,
       invoiceNumber,
+      queueNumber,
       orderType: payload.orderType,
       customerName: payload.customerName,
       tableNumber: payload.tableNumber,
