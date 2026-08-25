@@ -457,6 +457,7 @@ model Stock {
   productId   String // FK ke Product — produk mana yang punya stok ini
   quantity    Int      @default(0) // Jumlah stok yang tersedia saat ini (satuan unit)
   minQuantity Int      @default(0) // Batas minimum stok — jika quantity <= ini, tampilkan alert "Stok Menipis"
+  isUnlimited Boolean  @default(false) // Jika true, stok produk ini tidak pernah habis dan tidak akan dikurangi saat transaksi
   createdAt   DateTime @default(now()) // Waktu record stok pertama kali dibuat (saat produk ditambahkan)
   updatedAt   DateTime @updatedAt // Waktu terakhir jumlah stok berubah
 

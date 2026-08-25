@@ -3693,9 +3693,14 @@ paths:
         2. **Diskon Global (Minimal Pembelian)** â€” jika fitur diskon aktif di pengaturan bisnis (`isDiscountEnabled: true`) dan `subtotal` mencapai `globalDiscountMinPurchase`, maka subtotal dipotong lagi sebesar `globalDiscountPercentage`.
         3. **Pajak** â€” pajak dihitung dari nilai setelah semua diskon.
 
+        **Validasi Order Type:**
+        - Jika `orderType` adalah `DINE_IN`, maka `customerName` dan `tableNumber` wajib diisi.
+        - Jika `orderType` adalah `TAKE_AWAY`, maka hanya `customerName` yang wajib diisi.
+
         **Field tambahan yang akan muncul di Response:**
-        - `globalDiscountPercentage` â€” persentase diskon global yang diterapkan (null jika tidak berlaku)
-        - `globalDiscountAmount` â€” nominal (Rupiah) potongan diskon global yang diterapkan
+        - `queueNumber` — nomor urut antrean harian (reset tiap hari)
+        - `globalDiscountPercentage` — persentase diskon global yang diterapkan (null jika tidak berlaku)
+        - `globalDiscountAmount` — nominal (Rupiah) potongan diskon global yang diterapkan
       operationId: Transaction_Buat_Transaksi__BAYAR__post
       requestBody:
         required: true

@@ -62,7 +62,7 @@ export class StockService {
     role: string,
     data: AdjustStockDto
   ) {
-    const { outletId, productId, type, quantity, notes } = data;
+    const { outletId, productId, type, quantity, notes, isUnlimited } = data;
 
     // Jika user terikat cabang (Kasir/Staff), pastikan mereka tidak adjust cabang lain
     if (userOutletId && userOutletId !== outletId) {
@@ -81,17 +81,20 @@ export class StockService {
     }
 
     // 3. Tentukan newQuantity berdasar tipe
+    // Jika isUnlimited, tidak perlu hitung newQuantity dari stok — stok tidak berubah
     let newQuantity = stock.quantity;
 
-    if (type === 'OUT') {
-      if (stock.quantity < quantity) {
-        throw new AppError(`Stok tidak mencukupi. Stok saat ini: ${stock.quantity}, yang akan dikurangi: ${quantity}`, 400);
+    if (!isUnlimited) {
+      if (type === 'OUT') {
+        if (stock.quantity < quantity) {
+          throw new AppError(`Stok tidak mencukupi. Stok saat ini: ${stock.quantity}, yang akan dikurangi: ${quantity}`, 400);
+        }
+        newQuantity -= quantity;
+      } else if (type === 'IN') {
+        newQuantity += quantity;
+      } else if (type === 'CORRECTION') {
+        newQuantity = quantity;
       }
-      newQuantity -= quantity;
-    } else if (type === 'IN') {
-      newQuantity += quantity;
-    } else if (type === 'CORRECTION') {
-      newQuantity = quantity;
     }
 
     // 4. Simpan ke database via transaksi
@@ -106,7 +109,8 @@ export class StockService {
       type,
       notes,
       userId,
-      data.minQuantity
+      data.minQuantity,
+      isUnlimited
     );
 
     return result.updatedStock;

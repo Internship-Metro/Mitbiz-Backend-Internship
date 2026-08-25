@@ -78,7 +78,8 @@ export class TransactionService {
       if (!stockForOutlet) {
         throw new AppError(`Produk ${product.name} tidak tersedia di cabang ini`, 400);
       }
-      if (stockForOutlet.quantity < itemDto.quantity) {
+      // Jika stok unlimited, langsung lewati pengecekan jumlah stok
+      if (!stockForOutlet.isUnlimited && stockForOutlet.quantity < itemDto.quantity) {
         throw new AppError(`Stok produk ${product.name} tidak mencukupi (Tersisa: ${stockForOutlet.quantity})`, 400);
       }
 
@@ -97,6 +98,7 @@ export class TransactionService {
         discount: product.discount || 0,
         quantity: itemDto.quantity,
         subtotal: itemSubtotal,
+        isUnlimited: stockForOutlet.isUnlimited, // Tandai agar repository tidak memotong stok
       });
     }
 

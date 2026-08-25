@@ -107,15 +107,17 @@ export class StockRepository {
     type: StockAdjustmentType,
     notes: string,
     userId: string,
-    minQuantity?: number
+    minQuantity?: number,
+    isUnlimited?: boolean
   ) {
     return prisma.$transaction(async (tx) => {
-      // 1. Update stok (kuantitas dan minQuantity jika diberikan)
+      // 1. Update stok (kuantitas, minQuantity, dan isUnlimited jika diberikan)
       const updatedStock = await tx.stock.update({
         where: { id: stockId },
         data: {
           quantity: newQuantity,
           ...(minQuantity !== undefined && { minQuantity }),
+          ...(isUnlimited !== undefined && { isUnlimited }),
         },
       });
 

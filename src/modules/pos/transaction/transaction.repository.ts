@@ -29,6 +29,7 @@ export interface CreateTransactionInput {
     discount: number;
     quantity: number;
     subtotal: number;
+    isUnlimited?: boolean; // Jika true, stok tidak akan dikurangi saat transaksi
   }[];
 }
 
@@ -78,10 +79,11 @@ export class TransactionRepository {
       });
 
       // 2. Decrement Stocks
-      // Stok otomatis berkurang saat transaksi. Riwayat mutasi stok akibat penjualan
-      // sudah tercatat di tabel Transaction & TransactionItems — tidak perlu duplikasi
-      // ke StockAdjustment. StockAdjustment hanya untuk koreksi manual oleh admin.
+      // Stok otomatis berkurang saat transaksi. Produk dengan isUnlimited=true dilewati.
+      // Riwayat mutasi stok akibat penjualan sudah tercatat di tabel Transaction & TransactionItems
+      // — tidak perlu duplikasi ke StockAdjustment. StockAdjustment hanya untuk koreksi manual.
       for (const item of data.items) {
+        if (item.isUnlimited) continue; // Lewati produk unlimited — stok tidak perlu dikurangi
         await tx.stock.update({
           where: { productId_outletId: { productId: item.productId, outletId: data.outletId } },
           data: {

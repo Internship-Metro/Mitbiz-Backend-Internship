@@ -6,6 +6,7 @@ export const adjustStockSchema = z.object({
   type: z.enum(['IN', 'OUT', 'CORRECTION']),
   quantity: z.number().positive('Jumlah harus lebih besar dari 0'),
   minQuantity: z.number().min(0, 'Batas minimum stok minimal 0').optional(),
+  isUnlimited: z.boolean().optional(), // Jika true, stok produk ini dianggap tidak pernah habis
   notes: z.string().min(1, 'Catatan tidak boleh kosong'),
 });
 
