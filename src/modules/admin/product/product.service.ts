@@ -16,11 +16,22 @@ export class ProductService {
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 10;
 
-    return this.repository.findAll(businessId, {
+    const result = await this.repository.findAll(businessId, {
       ...params,
       page,
       limit,
     });
+
+    // Tambahkan isUnlimited pada setiap stock di setiap produk
+    const data = result.data.map((product) => ({
+      ...product,
+      stocks: product.stocks.map((s) => ({
+        ...s,
+        isUnlimited: s.quantity === null,
+      })),
+    }));
+
+    return { ...result, data };
   }
 
   async getProductById(id: string, businessId: string) {

@@ -1504,9 +1504,8 @@ paths:
     post:
       tags:
         - Manajemen User (By Super Admin)
-      summary: Buat Akun User Baru (Tambah Admin)
-      description: "Buat Akun User Baru (Tambah Admin) - Folder: Manajemen User (By
-        Super Admin)"
+      summary: Buat Akun User Baru (Admin atau Staff)
+      description: "Membuat user baru dengan role ADMIN atau STAFF untuk suatu bisnis. ADMIN wajib mengisi email (dipakai login). STAFF wajib mengisi username. Sebelum memanggil endpoint ini, panggil dulu GET /superadmin/users/form-options?businessId=xxx untuk mendapatkan daftar role dan cabang yang tersedia."
       operationId: Manajemen_User__By_Super_Admin__Buat_Akun_User_Baru__Tambah_Admin__post
       requestBody:
         required: true
@@ -1514,12 +1513,69 @@ paths:
           application/json:
             schema:
               type: object
-              example:
-                name: Contoh Data
-                description: Keterangan tambahan
+              required:
+                - name
+                - password
+                - businessId
+              properties:
+                name:
+                  type: string
+                  description: Nama lengkap user
+                email:
+                  type: string
+                  description: "Email login — WAJIB untuk role ADMIN"
+                username:
+                  type: string
+                  description: "Username login — WAJIB untuk role STAFF"
+                phone:
+                  type: string
+                  description: Nomor telepon (opsional)
+                password:
+                  type: string
+                  description: Password minimal 8 karakter
+                businessId:
+                  type: string
+                  description: ID bisnis tempat user ini akan terdaftar
+                role:
+                  type: string
+                  enum: [ADMIN, STAFF]
+                  description: "Role user. Default: ADMIN"
+                outletId:
+                  type: string
+                  nullable: true
+                  description: "ID cabang (STAFF). Kosongkan untuk akses semua cabang"
+                roleId:
+                  type: string
+                  description: "ID custom role / jabatan (STAFF, opsional). Dari hasil form-options"
+            examples:
+              Tambah Admin:
+                value:
+                  name: Budi Santoso
+                  email: budi@toko.com
+                  password: password123
+                  businessId: cmsoaq6zh000013zak24rgbgz
+                  role: ADMIN
+                  phone: "08123456789"
+              Tambah Staff (Cabang Tertentu):
+                value:
+                  name: Sari Kasir
+                  username: sari_kasir
+                  password: password123
+                  businessId: cmsoaq6zh000013zak24rgbgz
+                  role: STAFF
+                  outletId: outlet_id_1
+                  roleId: role_id_1
+              Tambah Staff (Semua Cabang):
+                value:
+                  name: Andi Supervisor
+                  username: andi_spv
+                  password: password123
+                  businessId: cmsoaq6zh000013zak24rgbgz
+                  role: STAFF
+                  roleId: role_id_2
       responses:
-        "200":
-          description: Berhasil
+        "201":
+          description: User berhasil dibuat
           content:
             application/json:
               schema:
@@ -1752,6 +1808,78 @@ paths:
                 $ref: "#/components/schemas/ApiErrorResponse"
         "404":
           description: Data Tidak Ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+        - bearerAuth: []
+
+  /superadmin/users/form-options:
+    get:
+      tags:
+        - Manajemen User (By Super Admin)
+      summary: Opsi Dropdown Form Tambah User Staff
+      description: "Mengambil daftar custom role (jabatan) dan cabang milik suatu bisnis. Digunakan sebagai data dropdown saat Super Admin akan membuat user STAFF baru. Role yang muncul hanya milik bisnis yang dipilih, dan cabang yang muncul juga hanya cabang bisnis tersebut ditambah opsi 'Semua Cabang' (id: null)."
+      operationId: Manajemen_User_By_Super_Admin_Form_Options_get
+      parameters:
+        - name: businessId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID bisnis yang dipilih Super Admin
+          example: cmsoaq6zh000013zak24rgbgz
+      responses:
+        "200":
+          description: Berhasil
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Berhasil mendapatkan opsi form
+                data:
+                  business:
+                    id: cmsoaq6zh000013zak24rgbgz
+                    name: Toko Maju Jaya
+                  roles:
+                    - id: role_id_1
+                      name: Kasir
+                      permissions: [MENU_POS]
+                    - id: role_id_2
+                      name: Supervisor
+                      permissions: [MENU_POS, MENU_STOCK]
+                  outlets:
+                    - id: null
+                      name: Semua Cabang
+                    - id: outlet_id_1
+                      name: Cabang Pusat
+                      address: Jl. Merdeka No. 1
+                    - id: outlet_id_2
+                      name: Cabang Selatan
+                      address: Jl. Sudirman No. 5
+        "400":
+          description: Bad Request / businessId tidak disertakan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "401":
+          description: Unauthorized / Token Tidak Valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "403":
+          description: Forbidden / Hak Akses Ditolak
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "404":
+          description: Bisnis Tidak Ditemukan
           content:
             application/json:
               schema:
@@ -3181,21 +3309,21 @@ paths:
                 notes:
                   type: string
                   description: Keterangan / alasan penyesuaian stok
-              examples:
-                Tambah Stok Biasa (IN):
-                  value:
-                    outletId: cmsoaq6zh000013zak24rgbgz
-                    productId: cmsotn5020004hs64jus09476
-                    type: IN
-                    quantity: 50
-                    notes: Restock dari supplier Indofood
-                Set Stok Unlimited:
-                  value:
-                    outletId: cmsoaq6zh000013zak24rgbgz
-                    productId: cmsotn5020004hs64jus09476
-                    type: CORRECTION
-                    isUnlimited: true
-                    notes: Produk jasa, stok tidak perlu dilacak
+            examples:
+              Tambah Stok Biasa (IN):
+                value:
+                  outletId: cmsoaq6zh000013zak24rgbgz
+                  productId: cmsotn5020004hs64jus09476
+                  type: IN
+                  quantity: 50
+                  notes: Restock dari supplier Indofood
+              Set Stok Unlimited:
+                value:
+                  outletId: cmsoaq6zh000013zak24rgbgz
+                  productId: cmsotn5020004hs64jus09476
+                  type: CORRECTION
+                  isUnlimited: true
+                  notes: Produk jasa, stok tidak perlu dilacak
       responses:
         "200":
           description: Berhasil

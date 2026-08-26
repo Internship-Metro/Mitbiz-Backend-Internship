@@ -30,7 +30,8 @@ export class ProductRepository {
       // sehingga filter harus menggunakan quantity > 0 bukan hanya keberadaan record Stock.
       ...(outletId && {
         stocks: {
-          some: { outletId, quantity: { gt: 0 } },
+          // Tampilkan produk yang stoknya > 0 ATAU unlimited (quantity=null)
+          some: { outletId, OR: [{ quantity: { gt: 0 } }, { quantity: null }] },
         },
       }),
     };
@@ -50,8 +51,8 @@ export class ProductRepository {
           stocks: {
             // Jika kasir, hanya sertakan data stok outlet yang relevan saja
             ...(outletId
-              ? { where: { outletId }, select: { outletId: true, quantity: true } }
-              : { select: { outletId: true, quantity: true } }),
+              ? { where: { outletId }, select: { outletId: true, quantity: true, minQuantity: true } }
+              : { select: { outletId: true, quantity: true, minQuantity: true } }),
           },
         },
         orderBy: { createdAt: 'desc' },
