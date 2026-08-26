@@ -85,20 +85,21 @@ export class StockService {
     let newQuantity = stock.quantity;
 
     if (!isUnlimited) {
+      const qty = quantity!; // Dijamin ada karena superRefine sudah validasi
       if (type === 'OUT') {
-        if (stock.quantity < quantity) {
-          throw new AppError(`Stok tidak mencukupi. Stok saat ini: ${stock.quantity}, yang akan dikurangi: ${quantity}`, 400);
+        if (stock.quantity < qty) {
+          throw new AppError(`Stok tidak mencukupi. Stok saat ini: ${stock.quantity}, yang akan dikurangi: ${qty}`, 400);
         }
-        newQuantity -= quantity;
+        newQuantity -= qty;
       } else if (type === 'IN') {
-        newQuantity += quantity;
+        newQuantity += qty;
       } else if (type === 'CORRECTION') {
-        newQuantity = quantity;
+        newQuantity = qty;
       }
     }
 
     // 4. Simpan ke database via transaksi
-    const adjustmentQuantity = type === 'CORRECTION' ? Math.abs(newQuantity - stock.quantity) : quantity;
+    const adjustmentQuantity = isUnlimited ? 0 : (type === 'CORRECTION' ? Math.abs(newQuantity - stock.quantity) : quantity!);
 
     const result = await stockRepository.adjustStockTransaction(
       stock.id,
