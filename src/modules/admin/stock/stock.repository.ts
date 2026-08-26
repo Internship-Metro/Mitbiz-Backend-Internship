@@ -192,6 +192,13 @@ export class StockRepository {
             select: {
               name: true,
               sku: true,
+              // Sertakan stok per outlet agar bisa tahu status unlimited
+              stocks: {
+                select: {
+                  outletId: true,
+                  quantity: true,
+                },
+              },
             },
           },
           user: {

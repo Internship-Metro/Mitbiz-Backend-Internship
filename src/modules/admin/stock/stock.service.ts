@@ -141,7 +141,20 @@ export class StockService {
     );
 
     return {
-      data: adjustments,
+      data: adjustments.map((adj) => {
+        // Cari stok produk ini di outlet yang sama dengan adjustment
+        const stockForOutlet = (adj.product as any)?.stocks?.find(
+          (s: any) => s.outletId === adj.outletId
+        );
+        return {
+          ...adj,
+          product: {
+            name: adj.product.name,
+            sku: adj.product.sku,
+          },
+          isUnlimited: stockForOutlet ? stockForOutlet.quantity === null : false,
+        };
+      }),
       meta: {
         total,
         page,

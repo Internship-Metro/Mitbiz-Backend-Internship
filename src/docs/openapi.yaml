@@ -3077,7 +3077,7 @@ paths:
       tags:
         - Stock
       summary: Lihat Daftar Stok Saat Ini
-      description: "Lihat Daftar Stok Saat Ini - Folder: Stock. Permission: MENU_STOCK (Admin) atau MENU_POS (Kasir). Untuk Kasir: hanya menampilkan produk yang memiliki stok > 0 di cabangnya sendiri. Untuk Admin: menampilkan semua stok termasuk yang qty=0."
+      description: "Lihat Daftar Stok Saat Ini - Folder: Stock. Permission: MENU_STOCK (Admin) atau MENU_POS (Kasir). Untuk Kasir: hanya menampilkan produk yang memiliki stok > 0 atau unlimited (quantity=null) di cabangnya. Response menyertakan field `isUnlimited: true` jika stok produk tidak terbatas."
       operationId: Stock_Lihat_Daftar_Stok_Saat_Ini_get
       parameters:
         - name: page
@@ -3149,12 +3149,53 @@ paths:
           application/json:
             schema:
               type: object
-              example:
-                outletId: cmsoaq6zh000013zak24rgbgz
-                productId: cmsotn5020004hs64jus09476
-                type: IN
-                quantity: 50
-                notes: Restock dari supplier Indofood
+              required:
+                - outletId
+                - productId
+                - type
+                - notes
+              properties:
+                outletId:
+                  type: string
+                  description: ID cabang
+                productId:
+                  type: string
+                  description: ID produk
+                type:
+                  type: string
+                  enum: [IN, OUT, CORRECTION]
+                  description: Tipe mutasi stok
+                quantity:
+                  type: integer
+                  nullable: true
+                  description: "Jumlah stok. Wajib diisi jika isUnlimited=false. Kirim null atau kosongkan jika isUnlimited=true."
+                  example: 50
+                minQuantity:
+                  type: integer
+                  description: Batas minimum stok untuk alert Stok Menipis (opsional)
+                  example: 5
+                isUnlimited:
+                  type: boolean
+                  description: "Jika true, stok produk ini dianggap tidak pernah habis. quantity tidak perlu diisi."
+                  example: false
+                notes:
+                  type: string
+                  description: Keterangan / alasan penyesuaian stok
+              examples:
+                Tambah Stok Biasa (IN):
+                  value:
+                    outletId: cmsoaq6zh000013zak24rgbgz
+                    productId: cmsotn5020004hs64jus09476
+                    type: IN
+                    quantity: 50
+                    notes: Restock dari supplier Indofood
+                Set Stok Unlimited:
+                  value:
+                    outletId: cmsoaq6zh000013zak24rgbgz
+                    productId: cmsotn5020004hs64jus09476
+                    type: CORRECTION
+                    isUnlimited: true
+                    notes: Produk jasa, stok tidak perlu dilacak
       responses:
         "200":
           description: Berhasil
