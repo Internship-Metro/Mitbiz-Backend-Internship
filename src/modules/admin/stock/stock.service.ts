@@ -112,8 +112,7 @@ export class StockService {
       type,
       notes,
       userId,
-      data.minQuantity,
-      isUnlimited
+      data.minQuantity
     );
 
     return result.updatedStock;
