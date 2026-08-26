@@ -4,6 +4,7 @@ import { AppError } from '@common/utils/app-error.util';
 import { hashPassword } from '@common/utils/hash.util';
 import { CreateUserType } from './dto/create-user.dto';
 import { UpdateUserType } from './dto/update-user.dto';
+import { roleRepository } from '../../admin/role/role.repository';
 
 export class SuperAdminUserService {
   /**
@@ -84,6 +85,44 @@ export class SuperAdminUserService {
     }
 
     return user;
+  }
+
+  /**
+   * Mengambil opsi dropdown untuk form tambah user STAFF oleh Super Admin.
+   * - roles  : daftar custom role yang dimiliki bisnis ini (e.g. Kasir, Supervisor)
+   * - outlets: daftar cabang yang dimiliki bisnis ini + pilihan "Semua Cabang" (outletId = null)
+   */
+  async getFormOptions(businessId: string) {
+    // Validasi bisnis ada
+    const business = await prisma.business.findFirst({
+      where: { id: businessId, deletedAt: null },
+      select: { id: true, name: true },
+    });
+
+    if (!business) {
+      throw new AppError('Bisnis tidak ditemukan', 404);
+    }
+
+    const [roles, outlets] = await Promise.all([
+      // Ambil semua custom role milik bisnis ini
+      roleRepository.findAll(businessId),
+      // Ambil semua outlet aktif milik bisnis ini
+      prisma.outlet.findMany({
+        where: { businessId, deletedAt: null },
+        select: { id: true, name: true, address: true },
+        orderBy: { name: 'asc' },
+      }),
+    ]);
+
+    return {
+      business: { id: business.id, name: business.name },
+      roles,
+      // null = akses semua cabang (tidak diikat ke satu outlet)
+      outlets: [
+        { id: null, name: 'Semua Cabang' },
+        ...outlets,
+      ],
+    };
   }
 
   /**

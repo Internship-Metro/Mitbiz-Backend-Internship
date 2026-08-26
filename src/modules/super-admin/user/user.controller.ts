@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { superAdminUserService } from './user.service';
 import { sendSuccess } from '@common/utils/response.util';
+import { AppError } from '@common/utils/app-error.util';
 
 export class SuperAdminUserController {
   /**
@@ -11,6 +12,24 @@ export class SuperAdminUserController {
     try {
       const summary = await superAdminUserService.getUserSummary();
       sendSuccess(res, summary, 'Berhasil mendapatkan ringkasan user');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/v1/superadmin/users/form-options?businessId=xxx
+   * Mengembalikan daftar custom role DAN outlet dari bisnis tertentu.
+   * Dipakai dropdown saat Super Admin akan membuat user STAFF baru.
+   */
+  async getFormOptions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { businessId } = req.query;
+      if (!businessId || typeof businessId !== 'string') {
+        throw new AppError('businessId wajib disertakan sebagai query param', 400);
+      }
+      const result = await superAdminUserService.getFormOptions(businessId);
+      sendSuccess(res, result, 'Berhasil mendapatkan opsi form');
     } catch (error) {
       next(error);
     }
