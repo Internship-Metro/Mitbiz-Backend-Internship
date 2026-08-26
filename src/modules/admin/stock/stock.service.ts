@@ -81,25 +81,27 @@ export class StockService {
     }
 
     // 3. Tentukan newQuantity berdasar tipe
-    // Jika isUnlimited, tidak perlu hitung newQuantity dari stok — stok tidak berubah
-    let newQuantity = stock.quantity;
+    // NULL = unlimited: stok tidak pernah habis dan tidak akan dikurangi saat transaksi
+    let newQuantity: number | null = stock.quantity;
 
-    if (!isUnlimited) {
+    if (isUnlimited) {
+      newQuantity = null; // Set ke null sebagai penanda unlimited
+    } else {
       const qty = quantity!; // Dijamin ada karena superRefine sudah validasi
       if (type === 'OUT') {
-        if (stock.quantity < qty) {
-          throw new AppError(`Stok tidak mencukupi. Stok saat ini: ${stock.quantity}, yang akan dikurangi: ${qty}`, 400);
+        if ((stock.quantity ?? 0) < qty) {
+          throw new AppError(`Stok tidak mencukupi. Stok saat ini: ${stock.quantity ?? 0}, yang akan dikurangi: ${qty}`, 400);
         }
-        newQuantity -= qty;
+        newQuantity = (stock.quantity ?? 0) - qty;
       } else if (type === 'IN') {
-        newQuantity += qty;
+        newQuantity = (stock.quantity ?? 0) + qty;
       } else if (type === 'CORRECTION') {
         newQuantity = qty;
       }
     }
 
     // 4. Simpan ke database via transaksi
-    const adjustmentQuantity = isUnlimited ? 0 : (type === 'CORRECTION' ? Math.abs(newQuantity - stock.quantity) : quantity!);
+    const adjustmentQuantity = isUnlimited ? 0 : (type === 'CORRECTION' ? Math.abs((newQuantity ?? 0) - (stock.quantity ?? 0)) : quantity!);
 
     const result = await stockRepository.adjustStockTransaction(
       stock.id,

@@ -455,9 +455,8 @@ model Stock {
   id          String   @id @default(cuid()) // ID unik record stok
   outletId    String // FK ke Outlet — stok ini ada di outlet mana
   productId   String // FK ke Product — produk mana yang punya stok ini
-  quantity    Int      @default(0) // Jumlah stok yang tersedia saat ini (satuan unit)
+  quantity    Int?     @default(0) // Jumlah stok saat ini. NULL = unlimited (tidak pernah habis), 0 = habis
   minQuantity Int      @default(0) // Batas minimum stok — jika quantity <= ini, tampilkan alert "Stok Menipis"
-  isUnlimited Boolean  @default(false) // Jika true, stok produk ini tidak pernah habis dan tidak akan dikurangi saat transaksi
   createdAt   DateTime @default(now()) // Waktu record stok pertama kali dibuat (saat produk ditambahkan)
   updatedAt   DateTime @updatedAt // Waktu terakhir jumlah stok berubah
 

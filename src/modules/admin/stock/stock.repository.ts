@@ -17,11 +17,14 @@ export class StockRepository {
 
     if (outletId) {
       where.outletId = outletId;
-      // Jika kasir: hanya tampilkan produk yang pernah benar-benar diisi stok (qty > 0).
+      // Jika kasir: hanya tampilkan produk unlimited (qty=null) ATAU yang punya stok (qty > 0).
       // Catatan: saat produk dibuat, semua outlet otomatis dapat record Stock qty=0,
       // sehingga tanpa filter ini semua produk akan tampil meski belum pernah diisi stok.
       if (kasirMode) {
-        where.quantity = { gt: 0 };
+        where.OR = [
+          { quantity: null },       // unlimited — selalu tampil
+          { quantity: { gt: 0 } },  // ada stok
+        ];
       }
     } else if (businessId) {
       where.outlet = { businessId };
@@ -62,7 +65,8 @@ export class StockRepository {
     });
 
     if (lowStockOnly) {
-      return stocks.filter((stock) => stock.quantity <= stock.minQuantity);
+      // Produk unlimited (quantity=null) tidak termasuk "stok menipis"
+      return stocks.filter((stock) => stock.quantity !== null && stock.quantity <= stock.minQuantity);
     }
 
     return stocks;
@@ -102,22 +106,20 @@ export class StockRepository {
     stockId: string,
     outletId: string,
     productId: string,
-    newQuantity: number,
-    adjustmentQuantity: number, // selisihnya
+    newQuantity: number | null, // null = unlimited
+    adjustmentQuantity: number,
     type: StockAdjustmentType,
     notes: string,
     userId: string,
-    minQuantity?: number,
-    isUnlimited?: boolean
+    minQuantity?: number
   ) {
     return prisma.$transaction(async (tx) => {
-      // 1. Update stok (kuantitas, minQuantity, dan isUnlimited jika diberikan)
+      // 1. Update stok (quantity null = unlimited, angka = stok biasa)
       const updatedStock = await tx.stock.update({
         where: { id: stockId },
         data: {
           quantity: newQuantity,
           ...(minQuantity !== undefined && { minQuantity }),
-          ...(isUnlimited !== undefined && { isUnlimited }),
         },
       });
 
