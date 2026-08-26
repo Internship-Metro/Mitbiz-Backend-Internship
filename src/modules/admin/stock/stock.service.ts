@@ -16,7 +16,8 @@ export class StockService {
     const kasirMode = !!userOutletId;
 
     const stocks = await stockRepository.findAll(targetOutletId, businessId, search, categoryId, lowStockOnly, kasirMode);
-    return stocks;
+    // Tambahkan field isUnlimited sebagai computed dari quantity: null berarti unlimited
+    return stocks.map((s) => ({ ...s, isUnlimited: s.quantity === null }));
   }
 
   /**
@@ -47,7 +48,7 @@ export class StockService {
     }
 
     const recentAdjustments = await stockRepository.findAdjustmentsByProduct(productId, 10);
-    return { ...stock, recentAdjustments };
+    return { ...stock, isUnlimited: stock.quantity === null, recentAdjustments };
   }
 
   /**
@@ -115,7 +116,8 @@ export class StockService {
       data.minQuantity
     );
 
-    return result.updatedStock;
+    // Tambahkan field isUnlimited sebagai computed
+    return { ...result.updatedStock, isUnlimited: result.updatedStock.quantity === null };
   }
 
   /**
