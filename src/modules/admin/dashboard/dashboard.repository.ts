@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/prisma/client';
 
 // Helper: timezone offset untuk Asia/Jakarta (UTC+7)
@@ -155,17 +156,20 @@ export const dashboardRepository = {
    * @param days - 7 atau 30 (default 30). Desain Super Admin pakai 7 hari, Admin bisa 30.
    */
   async getAdminTrend(businessId: string, days: number = 30) {
-    const trend = await prisma.$queryRaw<{ date: string; amount: bigint }[]>`
-      SELECT 
-        TO_CHAR(("createdAt" AT TIME ZONE 'Asia/Jakarta')::DATE, 'YYYY-MM-DD') as date,
-        SUM("totalAmount") as amount
-      FROM "transaction"
-      WHERE "status" = 'COMPLETED'
-        AND ("createdAt" AT TIME ZONE 'Asia/Jakarta')::DATE >= (NOW() AT TIME ZONE 'Asia/Jakarta')::DATE - INTERVAL '${days - 1} days'
-        AND "outletId" IN (SELECT id FROM "outlet" WHERE "businessId" = ${businessId} AND "deletedAt" IS NULL)
-      GROUP BY ("createdAt" AT TIME ZONE 'Asia/Jakarta')::DATE
-      ORDER BY ("createdAt" AT TIME ZONE 'Asia/Jakarta')::DATE ASC
-    `;
+    const interval = days - 1;
+    const trend = await prisma.$queryRaw<{ date: string; amount: bigint }[]>(
+      Prisma.sql`
+        SELECT
+          TO_CHAR(("createdAt" AT TIME ZONE 'Asia/Jakarta')::DATE, 'YYYY-MM-DD') as date,
+          SUM("totalAmount") as amount
+        FROM "transaction"
+        WHERE "status" = 'COMPLETED'
+          AND ("createdAt" AT TIME ZONE 'Asia/Jakarta')::DATE >= (NOW() AT TIME ZONE 'Asia/Jakarta')::DATE - (${interval} * INTERVAL '1 day')
+          AND "outletId" IN (SELECT id FROM "outlet" WHERE "businessId" = ${businessId} AND "deletedAt" IS NULL)
+        GROUP BY ("createdAt" AT TIME ZONE 'Asia/Jakarta')::DATE
+        ORDER BY ("createdAt" AT TIME ZONE 'Asia/Jakarta')::DATE ASC
+      `
+    );
 
     return trend.map((t) => ({
       date: t.date,
