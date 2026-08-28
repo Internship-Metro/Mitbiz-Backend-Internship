@@ -3301,7 +3301,7 @@ paths:
                 minQuantity:
                   type: integer
                   description: Batas minimum stok untuk alert Stok Menipis (opsional)
-                  example: 5
+                  example: 5 
                 isUnlimited:
                   type: boolean
                   description: "Jika true, stok produk ini dianggap tidak pernah habis. quantity tidak perlu diisi."
