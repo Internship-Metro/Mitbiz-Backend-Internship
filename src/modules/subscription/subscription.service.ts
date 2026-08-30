@@ -52,7 +52,7 @@ export class SubscriptionService {
         finish: (() => {
           const origins = env.ALLOWED_ORIGINS.split(',').map((o) => o.trim());
           const productionOrigin = origins.find((o) => o.startsWith('https://') && !o.includes('localhost'));
-          return `${productionOrigin ?? origins[0]}/dashboard`;
+          return `${productionOrigin ?? origins[0]}/home-admin`;
         })(),
       },
     } as any);
