@@ -46,6 +46,11 @@ export class SubscriptionService {
         unit: 'hours',
         duration: 24,
       },
+      callbacks: {
+        // Setelah pembayaran selesai (berhasil/gagal/pending), redirect ke dashboard admin
+        // Ini mencegah user terjebak di halaman Midtrans yang menyebabkan 404
+        finish: `${env.FRONTEND_URL}/dashboard`,
+      },
     } as any);
 
     // 5. Simpan record pembayaran ke database (status PENDING)

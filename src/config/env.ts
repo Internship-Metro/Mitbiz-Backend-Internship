@@ -54,6 +54,9 @@ const envSchema = z.object({
   MIDTRANS_MERCHANT_ID: z.string().min(1, 'MIDTRANS_MERCHANT_ID wajib diisi'),
   MIDTRANS_IS_PRODUCTION: z.string().default('false'),
 
+  // ─── Frontend ─────────────────────────────────────────────
+  // URL frontend untuk redirect setelah pembayaran Midtrans selesai
+  FRONTEND_URL: z.string().default('http://localhost:5173'),
 });
 
 
