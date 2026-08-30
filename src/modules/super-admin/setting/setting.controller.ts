@@ -18,7 +18,8 @@ export const settingController = {
       const parsedBody = updateSettingSchema.safeParse(req.body);
 
       if (!parsedBody.success) {
-        return sendError(res, (parsedBody.error as any)?.errors[0]?.message || 'Invalid body', 400);
+        const firstIssue = parsedBody.error.issues?.[0];
+        return sendError(res, firstIssue?.message || 'Input tidak valid', 400);
       }
 
       const data = await settingService.updateSettings(parsedBody.data);
